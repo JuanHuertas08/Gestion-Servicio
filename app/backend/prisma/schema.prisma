@@ -1,0 +1,189 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Rol {
+  ADMINISTRADOR
+  ASESOR
+  CONSULTA
+}
+
+enum AccionAuditoria {
+  CREAR
+  EDITAR
+  INACTIVAR
+  REACTIVAR
+  LOGIN
+  CAMBIO_PASSWORD
+}
+
+enum ModuloImportacion {
+  FACTURACION
+}
+
+enum EstadoImportacion {
+  PROCESANDO
+  COMPLETADO
+  COMPLETADO_CON_ERRORES
+  FALLIDO
+}
+
+enum EstadoSeguimiento {
+  PENDIENTE
+  REALIZADO
+}
+
+model User {
+  id              String   @id @default(cuid())
+  nombres         String
+  apellidos       String
+  numeroDocumento String   @unique
+  correo          String
+  telefono        String
+  rol             Rol
+  passwordHash    String
+  activo          Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  auditsAsActor  AuditLog[]          @relation("ActorAudits")
+  auditsAsTarget AuditLog[]          @relation("TargetAudits")
+  importBatches  ImportBatch[]
+  facturas       Factura[]
+  seguimientosRegistrados ClienteSeguimiento[]
+  parametrosSeguimientoActualizados ParametroSeguimiento[]
+
+  @@map("users")
+}
+
+model AuditLog {
+  id             String          @id @default(cuid())
+  actorUserId    String
+  actor          User            @relation("ActorAudits", fields: [actorUserId], references: [id])
+  targetUserId   String?
+  target         User?           @relation("TargetAudits", fields: [targetUserId], references: [id])
+  accion         AccionAuditoria
+  entidad        String
+  cambios        Json?
+  createdAt      DateTime        @default(now())
+
+  @@index([targetUserId])
+  @@index([actorUserId])
+  @@map("audit_logs")
+}
+
+model ImportBatch {
+  id            String            @id @default(cuid())
+  modulo        ModuloImportacion
+  nombreArchivo String
+  subidoPorId   String
+  subidoPor     User              @relation(fields: [subidoPorId], references: [id])
+  filasTotal    Int               @default(0)
+  filasNuevas   Int               @default(0)
+  filasActualizadas Int           @default(0)
+  filasError    Int               @default(0)
+  estado        EstadoImportacion @default(PROCESANDO)
+  errores       Json?
+  createdAt     DateTime          @default(now())
+
+  facturas      Factura[]
+
+  @@map("import_batches")
+}
+
+model Factura {
+  id                String   @id @default(cuid())
+  anioMesNatural    String?
+  centro            String?
+  centro2           String?
+  centroBeneficio   String?
+  pssr              String?
+  motivoPedido      String?
+  pedido            String
+  marca             String?
+  cliente           String?
+  factura           String
+  fechaDocumento    DateTime?
+  fechaFacturacion  DateTime?
+  piezas            Decimal?  @db.Decimal(18, 4)
+  ventaNeta         Decimal?  @db.Decimal(18, 4)
+  grossMarginUsd    Decimal?  @db.Decimal(18, 4)
+  repuestos         Decimal?  @db.Decimal(18, 4)
+  margenPct         Decimal?  @db.Decimal(18, 6)
+  manoObra          Decimal?  @db.Decimal(18, 4)
+  trabajosTerceros  Decimal?  @db.Decimal(18, 4)
+  insumos           Decimal?  @db.Decimal(18, 4)
+  descuento         Decimal?  @db.Decimal(18, 4)
+  descuentoPct      Decimal?  @db.Decimal(18, 6)
+  anio              Int?
+  mes               String?
+  pctRepuestos      Decimal?  @db.Decimal(18, 6)
+  pctManoObra       Decimal?  @db.Decimal(18, 6)
+  unidad            String?
+  tipoDoc           String?
+  causalNc          String?
+  anioCompra        Int?
+  mesCompra         Int?
+  fechaPrimeraCompra DateTime?
+  primerMesCompra   String?
+  esquemaServicio   String?
+  tipoFacturacion   String?
+  ultimaFactura     DateTime?
+  seguimientoFecha  DateTime?
+
+  importBatchId     String
+  importBatch       ImportBatch @relation(fields: [importBatchId], references: [id])
+  subidoPorId       String
+  subidoPor         User        @relation(fields: [subidoPorId], references: [id])
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+
+  @@unique([factura, pedido])
+  @@index([pssr])
+  @@index([fechaFacturacion])
+  @@index([cliente])
+  @@index([centro])
+  @@map("facturas")
+}
+
+// Historial de seguimientos registrados sobre un cliente para un tipo de facturación dado
+// (Repuestos / Servicio / Estibadores). Cada acción de "Registrar seguimiento" agrega una fila
+// nueva (no sobrescribe la anterior), de forma que se conserva el historial completo por
+// cliente + tipo de facturación. La fecha de próximo seguimiento se calcula a partir del
+// registro más reciente de este historial (o de la última factura si nunca se ha registrado uno).
+model ClienteSeguimiento {
+  id               String            @id @default(cuid())
+  cliente          String
+  tipoFacturacion  String
+  estado           EstadoSeguimiento @default(PENDIENTE)
+  fechaSeguimiento DateTime
+  observaciones    String?
+
+  registradoPorId  String?
+  registradoPor    User?             @relation(fields: [registradoPorId], references: [id])
+  createdAt        DateTime          @default(now())
+
+  @@index([cliente, tipoFacturacion])
+  @@index([estado])
+  @@map("cliente_seguimientos")
+}
+
+// Parametrización de días para calcular la próxima fecha de seguimiento a partir de la fecha de
+// facturación, configurable por tipo de facturación (Repuestos / Servicio / Estibadores).
+model ParametroSeguimiento {
+  id               String   @id @default(cuid())
+  tipoFacturacion  String   @unique
+  diasSeguimiento  Int
+
+  actualizadoPorId String?
+  actualizadoPor   User?    @relation(fields: [actualizadoPorId], references: [id])
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@map("parametros_seguimiento")
+}

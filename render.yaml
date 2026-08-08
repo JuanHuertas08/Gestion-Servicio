@@ -1,0 +1,25 @@
+services:
+  - type: web
+    name: control-servicio-backend
+    runtime: node
+    plan: free
+    rootDir: app/backend
+    buildCommand: npm install && npm run build
+    startCommand: npm run start:prod
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRES_IN
+        value: 8h
+      - key: FRONTEND_ORIGIN
+        sync: false
+      - key: COOKIE_SECURE
+        value: "true"
+      - key: SEED_ADMIN_DOCUMENTO
+        sync: false
+      - key: SEED_ADMIN_PASSWORD
+        sync: false

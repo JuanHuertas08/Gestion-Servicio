@@ -1,0 +1,7 @@
+node_modules/
+dist/
+.env
+*.log
+
+# Datos reales de negocio (clientes, ventas) - no versionar
+Base de datos.xlsx
