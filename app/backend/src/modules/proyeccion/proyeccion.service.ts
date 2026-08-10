@@ -4,9 +4,7 @@ import { HttpError } from "../../middleware/errorHandler";
 import { calcularProximaFechaSeguimiento, getDiasSeguimientoMap } from "../facturacion/parametrosSeguimiento";
 import { listAsesores } from "../asesores/asesores.service";
 
-export interface ListSeguimientoParams {
-  page: number;
-  pageSize: number;
+export interface BaseSeguimientoParams {
   asesor?: string;
   cliente?: string;
   tipoFacturacion?: string;
@@ -14,7 +12,13 @@ export interface ListSeguimientoParams {
   requesterNombreCompleto: string;
 }
 
-function buildWhere(params: ListSeguimientoParams): Prisma.FacturaWhereInput {
+export interface ListSeguimientoParams extends BaseSeguimientoParams {
+  page: number;
+  pageSize: number;
+  estado?: EstadoSeguimiento;
+}
+
+function buildWhere(params: BaseSeguimientoParams): Prisma.FacturaWhereInput {
   const { asesor, cliente, tipoFacturacion, requesterRol, requesterNombreCompleto } = params;
 
   return {
@@ -30,34 +34,34 @@ function buildWhere(params: ListSeguimientoParams): Prisma.FacturaWhereInput {
   };
 }
 
-export async function listSeguimientoClientes(params: ListSeguimientoParams) {
-  const { page, pageSize } = params;
-  const where = buildWhere(params);
+interface GrupoConEstado {
+  cliente: string;
+  tipoFacturacion: string;
+  pssr: string | null;
+  ultimaFechaFacturacion: Date | null;
+  fechaUltimoSeguimiento: Date | null;
+  fechaProximoSeguimiento: Date | null;
+  estado: EstadoSeguimiento;
+  observaciones: string | null;
+}
 
-  const grupos = await prisma.factura.findMany({
-    where,
-    distinct: ["cliente", "tipoFacturacion"],
-    select: { cliente: true, tipoFacturacion: true },
-  });
-  const total = grupos.length;
+/**
+ * Calcula, para todos los grupos (cliente, tipo de facturación) que matchean los filtros de
+ * Factura, su estado de seguimiento más reciente. No pagina: el dataset es pequeño (cientos a
+ * pocos miles de grupos), así que filtrar por estado (que depende del historial de seguimiento,
+ * no de un campo de Factura) se resuelve completo en memoria antes de paginar.
+ */
+async function calcularGruposConEstado(baseParams: BaseSeguimientoParams): Promise<GrupoConEstado[]> {
+  const where = buildWhere(baseParams);
 
   const ultimasFacturas = await prisma.factura.findMany({
     where,
     distinct: ["cliente", "tipoFacturacion"],
     orderBy: [{ fechaFacturacion: "desc" }],
-    select: {
-      cliente: true,
-      tipoFacturacion: true,
-      pssr: true,
-      fechaFacturacion: true,
-    },
-    skip: (page - 1) * pageSize,
-    take: pageSize,
+    select: { cliente: true, tipoFacturacion: true, pssr: true, fechaFacturacion: true },
   });
 
-  if (ultimasFacturas.length === 0) {
-    return { total, page, pageSize, data: [] };
-  }
+  if (ultimasFacturas.length === 0) return [];
 
   const [seguimientos, diasPorTipo] = await Promise.all([
     // Historial: puede haber varias filas por (cliente, tipoFacturacion); nos quedamos con la
@@ -74,11 +78,9 @@ export async function listSeguimientoClientes(params: ListSeguimientoParams) {
     }),
     getDiasSeguimientoMap(),
   ]);
-  const seguimientoMap = new Map(
-    seguimientos.map((s) => [`${s.cliente}::${s.tipoFacturacion}`, s])
-  );
+  const seguimientoMap = new Map(seguimientos.map((s) => [`${s.cliente}::${s.tipoFacturacion}`, s]));
 
-  const data = ultimasFacturas.map((f) => {
+  return ultimasFacturas.map((f) => {
     const seguimiento = seguimientoMap.get(`${f.cliente}::${f.tipoFacturacion}`);
     const fechaUltimoSeguimiento = seguimiento?.fechaSeguimiento ?? null;
     // Si ya se registró un seguimiento, la próxima fecha se proyecta desde esa fecha; si nunca se
@@ -95,8 +97,42 @@ export async function listSeguimientoClientes(params: ListSeguimientoParams) {
       observaciones: seguimiento?.observaciones ?? null,
     };
   });
+}
+
+export async function listSeguimientoClientes(params: ListSeguimientoParams) {
+  const { page, pageSize, estado } = params;
+  let grupos = await calcularGruposConEstado(params);
+
+  if (estado) {
+    grupos = grupos.filter((g) => g.estado === estado);
+  }
+
+  const total = grupos.length;
+  const data = grupos.slice((page - 1) * pageSize, page * pageSize);
 
   return { total, page, pageSize, data };
+}
+
+/**
+ * Resumen (independiente del filtro de estado, ya que lo describe): total de clientes distintos
+ * asignados, total de seguimientos proyectados (combinaciones cliente + tipo de facturación),
+ * cuántos realizados, cuántos pendientes y el % de cumplimiento resultante.
+ */
+export async function getResumenSeguimiento(params: BaseSeguimientoParams) {
+  const grupos = await calcularGruposConEstado(params);
+
+  const clientesAsignados = new Set(grupos.map((g) => g.cliente)).size;
+  const seguimientosProyectados = grupos.length;
+  const realizados = grupos.filter((g) => g.estado === EstadoSeguimiento.REALIZADO).length;
+  const pendientes = seguimientosProyectados - realizados;
+
+  return {
+    clientesAsignados,
+    seguimientosProyectados,
+    realizados,
+    pendientes,
+    cumplimientoPct: seguimientosProyectados > 0 ? realizados / seguimientosProyectados : 0,
+  };
 }
 
 export async function listFiltrosSeguimiento(requesterRol: Rol, requesterNombreCompleto: string) {

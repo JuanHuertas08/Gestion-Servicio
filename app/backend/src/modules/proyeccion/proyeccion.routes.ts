@@ -5,6 +5,7 @@ import { EstadoSeguimiento, Rol } from "@prisma/client";
 import { prisma } from "../../config/prisma";
 import { HttpError } from "../../middleware/errorHandler";
 import {
+  getResumenSeguimiento,
   listFiltrosSeguimiento,
   listHistorialSeguimiento,
   listSeguimientoClientes,
@@ -28,6 +29,7 @@ const listQuerySchema = z.object({
   asesor: z.string().optional(),
   cliente: z.string().optional(),
   tipoFacturacion: z.string().optional(),
+  estado: z.nativeEnum(EstadoSeguimiento).optional(),
 });
 
 router.get("/", async (req, res, next) => {
@@ -50,6 +52,27 @@ router.get("/filtros", async (req, res, next) => {
     const requesterNombreCompleto = await nombreCompletoDe(req.user!.sub);
     const filtros = await listFiltrosSeguimiento(req.user!.rol, requesterNombreCompleto);
     res.json(filtros);
+  } catch (err) {
+    next(err);
+  }
+});
+
+const resumenQuerySchema = z.object({
+  asesor: z.string().optional(),
+  cliente: z.string().optional(),
+  tipoFacturacion: z.string().optional(),
+});
+
+router.get("/resumen", async (req, res, next) => {
+  try {
+    const query = resumenQuerySchema.parse(req.query);
+    const requesterNombreCompleto = await nombreCompletoDe(req.user!.sub);
+    const resumen = await getResumenSeguimiento({
+      ...query,
+      requesterRol: req.user!.rol,
+      requesterNombreCompleto,
+    });
+    res.json(resumen);
   } catch (err) {
     next(err);
   }

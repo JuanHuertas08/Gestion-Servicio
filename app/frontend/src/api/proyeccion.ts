@@ -7,6 +7,7 @@ export interface ListSeguimientosParams {
   asesor?: string;
   cliente?: string;
   tipoFacturacion?: string;
+  estado?: EstadoSeguimiento;
 }
 
 export async function listSeguimientos(
@@ -18,6 +19,25 @@ export async function listSeguimientos(
 
 export async function listFiltrosSeguimiento(): Promise<FiltrosSeguimiento> {
   const { data } = await api.get<FiltrosSeguimiento>("/proyeccion/filtros");
+  return data;
+}
+
+export interface ResumenSeguimientoParams {
+  asesor?: string;
+  cliente?: string;
+  tipoFacturacion?: string;
+}
+
+export interface ResumenSeguimiento {
+  clientesAsignados: number;
+  seguimientosProyectados: number;
+  realizados: number;
+  pendientes: number;
+  cumplimientoPct: number;
+}
+
+export async function getResumenSeguimiento(params: ResumenSeguimientoParams): Promise<ResumenSeguimiento> {
+  const { data } = await api.get<ResumenSeguimiento>("/proyeccion/resumen", { params });
   return data;
 }
 

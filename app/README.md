@@ -98,8 +98,12 @@ cualquier llamado fuera del alcance del rol.
    quedan en la auditoría.
 4. **Proyección de seguimiento**: no tiene carga de Excel propia — se deriva de la Facturación ya cargada.
    Para cada combinación (Cliente, Tipo de Facturación: Repuestos/Servicio/Estibadores) se toma el renglón
-   con la fecha de facturación más reciente. Buscador con filtros por Asesor (PSSR), Cliente y Tipo de
-   Facturación; cada resultado muestra cliente, última fecha de facturación, tipo, asesor, la **fecha de
+   con la fecha de facturación más reciente. Encima de la grilla hay un resumen (clientes asignados,
+   seguimientos proyectados, realizados, pendientes) y un tacómetro de % de cumplimiento con 5 zonas de
+   color (Pobre/Suficiente/Bueno/Muy Bueno/Excelente) — ambos ignoran el filtro de Estado a propósito,
+   porque describen la distribución completa por estado. Buscador con filtros por Asesor (PSSR), Cliente,
+   Tipo de Facturación y **Estado del seguimiento** (Pendiente/Realizado); cada resultado muestra cliente,
+   última fecha de facturación, tipo, asesor, la **fecha de
    próximo seguimiento proyectada** y el estado (Pendiente/Realizado), con acciones para registrar un nuevo
    seguimiento (fecha + observaciones) y para ver el **historial completo** de seguimientos de ese cliente +
    tipo de facturación. Cada "Registrar seguimiento" agrega una entrada nueva al historial (no sobrescribe
