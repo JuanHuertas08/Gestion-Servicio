@@ -76,10 +76,14 @@ cualquier llamado fuera del alcance del rol.
 
 ## Módulos
 
-1. **Usuarios**: CRUD + inactivación (soft delete) + auditoría de creación/edición/inactivación/login.
+1. **Usuarios**: CRUD + inactivación (soft delete) + auditoría de creación/edición/inactivación/login. Al
+   crear (o editar) un usuario con rol Asesor, se registra/vincula automáticamente en el **maestro de
+   Asesores** (`GET /api/asesores`) — la fuente única de nombres usada por los filtros de asesor del
+   Tablero y de Proyección. Ese maestro también se puebla solo con cualquier PSSR nuevo que aparezca al
+   importar Facturación (sin cuenta de usuario vinculada, hasta que alguien cree el usuario correspondiente).
 2. **Tablero**: KPIs (venta neta, margen, # facturas, top asesores) y gráficos gerenciales, filtrables
-   dinámicamente por año y por mes (el selector de mes solo se habilita tras elegir un año, usando
-   `@mui/x-charts`):
+   dinámicamente por año, mes y **asesor** (los tres como botones; el de mes solo se habilita tras elegir
+   un año), usando `@mui/x-charts`:
    - **Facturación**: venta neta por período (por mes si hay año elegido, por año si no — el gráfico de
      tendencia ignora el filtro de mes a propósito), por tipo de facturación, por marca, y top asesores.
    - **Seguimientos de asesores**: % de cumplimiento global y por asesor, conteo de realizados/pendientes/

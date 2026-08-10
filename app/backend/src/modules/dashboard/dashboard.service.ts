@@ -5,6 +5,7 @@ import { calcularProximaFechaSeguimiento, getDiasSeguimientoMap } from "../factu
 export interface DashboardParams {
   anio?: number;
   mes?: number; // 1-12, solo se aplica si también se especifica anio
+  asesor?: string; // PSSR / nombre completo del asesor
 }
 
 function buildRangoFechas(params: DashboardParams): { gte: Date; lt: Date } | undefined {
@@ -22,9 +23,16 @@ function buildRangoFechas(params: DashboardParams): { gte: Date; lt: Date } | un
   };
 }
 
-export async function getDashboardKpis(params: DashboardParams) {
+function buildFacturaWhere(params: DashboardParams): Prisma.FacturaWhereInput {
   const rango = buildRangoFechas(params);
-  const where: Prisma.FacturaWhereInput = rango ? { fechaFacturacion: rango } : {};
+  return {
+    ...(rango ? { fechaFacturacion: rango } : {}),
+    ...(params.asesor ? { pssr: { equals: params.asesor, mode: "insensitive" as const } } : {}),
+  };
+}
+
+export async function getDashboardKpis(params: DashboardParams) {
+  const where = buildFacturaWhere(params);
 
   const [totales, numFacturas, porAsesor] = await Promise.all([
     prisma.factura.aggregate({
@@ -76,12 +84,13 @@ const MESES_ABREV = [
  * dentro del período); si no, desglosa por año (vista panorámica). Ignora el filtro de mes del
  * tablero a propósito: un gráfico de tendencia no tiene sentido colapsado a un solo mes.
  */
-export async function getVentasPorPeriodo(anio?: number) {
+export async function getVentasPorPeriodo(anio?: number, asesor?: string) {
   if (anio) {
     const rows = await prisma.$queryRaw<{ mes: number; venta: string | null }[]>`
       SELECT EXTRACT(MONTH FROM "fechaFacturacion")::int AS mes, SUM("ventaNeta") AS venta
       FROM facturas
       WHERE EXTRACT(YEAR FROM "fechaFacturacion") = ${anio}
+        AND (${asesor ?? null}::text IS NULL OR "pssr" ILIKE ${asesor ?? ""})
       GROUP BY 1
       ORDER BY 1
     `;
@@ -92,6 +101,7 @@ export async function getVentasPorPeriodo(anio?: number) {
     SELECT EXTRACT(YEAR FROM "fechaFacturacion")::int AS anio, SUM("ventaNeta") AS venta
     FROM facturas
     WHERE "fechaFacturacion" IS NOT NULL
+      AND (${asesor ?? null}::text IS NULL OR "pssr" ILIKE ${asesor ?? ""})
     GROUP BY 1
     ORDER BY 1
   `;
@@ -99,11 +109,7 @@ export async function getVentasPorPeriodo(anio?: number) {
 }
 
 export async function getVentasPorTipoFacturacion(params: DashboardParams) {
-  const rango = buildRangoFechas(params);
-  const where: Prisma.FacturaWhereInput = {
-    tipoFacturacion: { not: null },
-    ...(rango ? { fechaFacturacion: rango } : {}),
-  };
+  const where: Prisma.FacturaWhereInput = { tipoFacturacion: { not: null }, ...buildFacturaWhere(params) };
   const rows = await prisma.factura.groupBy({
     by: ["tipoFacturacion"],
     where,
@@ -116,11 +122,7 @@ export async function getVentasPorTipoFacturacion(params: DashboardParams) {
 }
 
 export async function getVentasPorMarca(params: DashboardParams) {
-  const rango = buildRangoFechas(params);
-  const where: Prisma.FacturaWhereInput = {
-    marca: { not: null },
-    ...(rango ? { fechaFacturacion: rango } : {}),
-  };
+  const where: Prisma.FacturaWhereInput = { marca: { not: null }, ...buildFacturaWhere(params) };
   const rows = await prisma.factura.groupBy({
     by: ["marca"],
     where,
@@ -137,16 +139,15 @@ export async function getVentasPorMarca(params: DashboardParams) {
 /**
  * Indicadores de seguimiento: sobre el mismo universo de (cliente, tipo de facturación) del
  * módulo de Proyección — filtrado por la fecha de la última factura de cada grupo, respetando
- * año/mes del tablero — calcula cuántos tienen su seguimiento más reciente en estado Realizado,
- * cuántos están pendientes, y de esos pendientes cuántos ya vencieron (fecha de próximo
- * seguimiento proyectada ya pasada). El % de cumplimiento es realizados / total.
+ * año/mes/asesor del tablero — calcula cuántos tienen su seguimiento más reciente en estado
+ * Realizado, cuántos están pendientes, y de esos pendientes cuántos ya vencieron (fecha de
+ * próximo seguimiento proyectada ya pasada). El % de cumplimiento es realizados / total.
  */
 export async function getSeguimientoStats(params: DashboardParams) {
-  const rango = buildRangoFechas(params);
   const where: Prisma.FacturaWhereInput = {
     cliente: { not: null },
     tipoFacturacion: { not: null },
-    ...(rango ? { fechaFacturacion: rango } : {}),
+    ...buildFacturaWhere(params),
   };
 
   const ultimasFacturas = await prisma.factura.findMany({

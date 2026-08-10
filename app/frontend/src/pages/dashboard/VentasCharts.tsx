@@ -31,6 +31,7 @@ const PIE_COLORS = ["#E4002B", "#1A1A1A", "#6b6b6b", "#c40025", "#9e9e9e", "#3a3
 interface Props {
   anio: string;
   mes: string;
+  asesor: string;
   topAsesores: DashboardKpis["topAsesores"];
 }
 
@@ -45,21 +46,21 @@ function ChartCard({ title, children }: { title: string; children: React.ReactNo
   );
 }
 
-export function VentasCharts({ anio, mes, topAsesores }: Props) {
+export function VentasCharts({ anio, mes, asesor, topAsesores }: Props) {
   const [porPeriodo, setPorPeriodo] = useState<VentaPorPeriodo[]>([]);
   const [porTipo, setPorTipo] = useState<VentaPorTipo[]>([]);
   const [porMarca, setPorMarca] = useState<VentaPorMarca[]>([]);
 
   useEffect(() => {
-    getVentasPorPeriodo(anio ? Number(anio) : undefined).then(setPorPeriodo);
-  }, [anio]);
+    getVentasPorPeriodo(anio ? Number(anio) : undefined, asesor || undefined).then(setPorPeriodo);
+  }, [anio, asesor]);
 
   useEffect(() => {
     const a = anio ? Number(anio) : undefined;
     const m = anio && mes ? Number(mes) : undefined;
-    getVentasPorTipo(a, m).then(setPorTipo);
-    getVentasPorMarca(a, m).then(setPorMarca);
-  }, [anio, mes]);
+    getVentasPorTipo(a, m, asesor || undefined).then(setPorTipo);
+    getVentasPorMarca(a, m, asesor || undefined).then(setPorMarca);
+  }, [anio, mes, asesor]);
 
   return (
     <Box sx={{ mb: 4 }}>

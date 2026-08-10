@@ -8,6 +8,7 @@ import usersRoutes from "./modules/users/users.routes";
 import facturacionRoutes from "./modules/facturacion/facturacion.routes";
 import proyeccionRoutes from "./modules/proyeccion/proyeccion.routes";
 import dashboardRoutes from "./modules/dashboard/dashboard.routes";
+import asesoresRoutes from "./modules/asesores/asesores.routes";
 
 export const app = express();
 
@@ -26,6 +27,7 @@ app.use("/api/usuarios", usersRoutes);
 app.use("/api/facturacion", facturacionRoutes);
 app.use("/api/proyeccion", proyeccionRoutes);
 app.use("/api/dashboard", dashboardRoutes);
+app.use("/api/asesores", asesoresRoutes);
 
 app.use(notFoundHandler);
 app.use(errorHandler);

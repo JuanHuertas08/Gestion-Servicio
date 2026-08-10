@@ -2,6 +2,7 @@ import { prisma } from "../../config/prisma";
 import { EstadoSeguimiento, Prisma, Rol } from "@prisma/client";
 import { HttpError } from "../../middleware/errorHandler";
 import { calcularProximaFechaSeguimiento, getDiasSeguimientoMap } from "../facturacion/parametrosSeguimiento";
+import { listAsesores } from "../asesores/asesores.service";
 
 export interface ListSeguimientoParams {
   page: number;
@@ -103,12 +104,7 @@ export async function listFiltrosSeguimiento(requesterRol: Rol, requesterNombreC
     requesterRol === Rol.ASESOR ? { equals: requesterNombreCompleto, mode: "insensitive" } : undefined;
 
   const [asesores, tipos] = await Promise.all([
-    prisma.factura.findMany({
-      where: { pssr: asesorFiltro ? { ...asesorFiltro, not: null } : { not: null } },
-      distinct: ["pssr"],
-      select: { pssr: true },
-      orderBy: { pssr: "asc" },
-    }),
+    listAsesores({ requesterRol, requesterNombreCompleto }),
     prisma.factura.findMany({
       where: { tipoFacturacion: { not: null }, ...(asesorFiltro ? { pssr: asesorFiltro } : {}) },
       distinct: ["tipoFacturacion"],
@@ -118,7 +114,7 @@ export async function listFiltrosSeguimiento(requesterRol: Rol, requesterNombreC
   ]);
 
   return {
-    asesores: asesores.map((a) => a.pssr).filter((v): v is string => !!v),
+    asesores: asesores.map((a) => a.nombreCompleto),
     tiposFacturacion: tipos.map((t) => t.tipoFacturacion).filter((v): v is string => !!v),
   };
 }

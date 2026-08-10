@@ -1,9 +1,9 @@
 import { api } from "./client";
 import type { DashboardKpis } from "./types";
 
-export async function getDashboardKpis(anio?: number, mes?: number): Promise<DashboardKpis> {
+export async function getDashboardKpis(anio?: number, mes?: number, asesor?: string): Promise<DashboardKpis> {
   const { data } = await api.get<DashboardKpis>("/dashboard/kpis", {
-    params: { anio, mes },
+    params: { anio, mes, asesor },
   });
   return data;
 }
@@ -22,9 +22,9 @@ export interface VentaPorPeriodo {
   ventaNeta: number;
 }
 
-export async function getVentasPorPeriodo(anio?: number): Promise<VentaPorPeriodo[]> {
+export async function getVentasPorPeriodo(anio?: number, asesor?: string): Promise<VentaPorPeriodo[]> {
   const { data } = await api.get<VentaPorPeriodo[]>("/dashboard/ventas-por-periodo", {
-    params: { anio },
+    params: { anio, asesor },
   });
   return data;
 }
@@ -34,8 +34,8 @@ export interface VentaPorTipo {
   ventaNeta: number;
 }
 
-export async function getVentasPorTipo(anio?: number, mes?: number): Promise<VentaPorTipo[]> {
-  const { data } = await api.get<VentaPorTipo[]>("/dashboard/ventas-por-tipo", { params: { anio, mes } });
+export async function getVentasPorTipo(anio?: number, mes?: number, asesor?: string): Promise<VentaPorTipo[]> {
+  const { data } = await api.get<VentaPorTipo[]>("/dashboard/ventas-por-tipo", { params: { anio, mes, asesor } });
   return data;
 }
 
@@ -44,8 +44,8 @@ export interface VentaPorMarca {
   ventaNeta: number;
 }
 
-export async function getVentasPorMarca(anio?: number, mes?: number): Promise<VentaPorMarca[]> {
-  const { data } = await api.get<VentaPorMarca[]>("/dashboard/ventas-por-marca", { params: { anio, mes } });
+export async function getVentasPorMarca(anio?: number, mes?: number, asesor?: string): Promise<VentaPorMarca[]> {
+  const { data } = await api.get<VentaPorMarca[]>("/dashboard/ventas-por-marca", { params: { anio, mes, asesor } });
   return data;
 }
 
@@ -65,7 +65,7 @@ export interface SeguimientoStats {
   porAsesor: SeguimientoPorAsesor[];
 }
 
-export async function getSeguimientoStats(anio?: number, mes?: number): Promise<SeguimientoStats> {
-  const { data } = await api.get<SeguimientoStats>("/dashboard/seguimientos", { params: { anio, mes } });
+export async function getSeguimientoStats(anio?: number, mes?: number, asesor?: string): Promise<SeguimientoStats> {
+  const { data } = await api.get<SeguimientoStats>("/dashboard/seguimientos", { params: { anio, mes, asesor } });
   return data;
 }

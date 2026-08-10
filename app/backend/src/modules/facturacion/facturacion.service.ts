@@ -2,6 +2,7 @@ import { prisma } from "../../config/prisma";
 import { parseFacturacionWorkbook } from "./facturacion.parser";
 import { ModuloImportacion, EstadoImportacion } from "@prisma/client";
 import { calcularProximaFechaSeguimiento, getDiasSeguimientoMap } from "./parametrosSeguimiento";
+import { registrarAsesoresDesdeFacturacion } from "../asesores/asesores.service";
 
 export {
   listParametrosSeguimiento,
@@ -98,6 +99,10 @@ export async function importFacturacion(params: {
         else nuevas++;
       });
     }
+
+    await registrarAsesoresDesdeFacturacion(
+      validRows.map((r) => (r.data as Record<string, unknown>).pssr as string | null).filter((v): v is string => !!v)
+    );
 
     const estadoFinal =
       rowErrors.length > 0

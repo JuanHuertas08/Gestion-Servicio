@@ -2,6 +2,11 @@ import bcrypt from "bcryptjs";
 import { prisma } from "../../config/prisma";
 import { HttpError } from "../../middleware/errorHandler";
 import { AccionAuditoria, Rol, Prisma } from "@prisma/client";
+import {
+  desvincularAsesorDeUsuario,
+  registrarAsesorDeUsuario,
+  setAsesorActivoPorUsuario,
+} from "../asesores/asesores.service";
 
 export interface CreateUserInput {
   nombres: string;
@@ -48,6 +53,17 @@ export async function createUser(input: CreateUserInput, actorUserId: string) {
       },
     },
   });
+
+  if (user.rol === Rol.ASESOR) {
+    await registrarAsesorDeUsuario({
+      userId: user.id,
+      nombres: user.nombres,
+      apellidos: user.apellidos,
+      numeroDocumento: user.numeroDocumento,
+      correo: user.correo,
+      telefono: user.telefono,
+    });
+  }
 
   return user;
 }
@@ -97,6 +113,20 @@ export async function updateUser(id: string, input: UpdateUserInput, actorUserId
     },
   });
 
+  if (user.rol === Rol.ASESOR) {
+    await registrarAsesorDeUsuario({
+      userId: user.id,
+      nombres: user.nombres,
+      apellidos: user.apellidos,
+      numeroDocumento: user.numeroDocumento,
+      correo: user.correo,
+      telefono: user.telefono,
+    });
+  } else if (existing.rol === Rol.ASESOR) {
+    // Dejó de ser Asesor: se desvincula del maestro pero no se borra el registro histórico.
+    await desvincularAsesorDeUsuario(user.id);
+  }
+
   return user;
 }
 
@@ -117,6 +147,10 @@ export async function setUserActivo(id: string, activo: boolean, actorUserId: st
       entidad: "User",
     },
   });
+
+  if (user.rol === Rol.ASESOR) {
+    await setAsesorActivoPorUsuario(user.id, activo);
+  }
 
   return user;
 }

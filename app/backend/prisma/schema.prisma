@@ -57,6 +57,7 @@ model User {
   facturas       Factura[]
   seguimientosRegistrados ClienteSeguimiento[]
   parametrosSeguimientoActualizados ParametroSeguimiento[]
+  asesor         Asesor?
 
   @@map("users")
 }
@@ -171,6 +172,27 @@ model ClienteSeguimiento {
   @@index([cliente, tipoFacturacion])
   @@index([estado])
   @@map("cliente_seguimientos")
+}
+
+// Maestro de asesores: nombre canónico contra el que se compara el PSSR de las facturas y de los
+// seguimientos. Se puebla de dos formas: (1) automáticamente al crear un usuario con rol Asesor,
+// y (2) automáticamente al importar Facturación, con cualquier PSSR nuevo que aparezca en el
+// Excel y todavía no esté registrado. Cuando el asesor tiene cuenta de acceso al sistema, userId
+// queda vinculado; los que solo existen por aparecer en el Excel quedan sin vincular.
+model Asesor {
+  id              String   @id @default(cuid())
+  nombreCompleto  String   @unique
+  numeroDocumento String?
+  correo          String?
+  telefono        String?
+  activo          Boolean  @default(true)
+
+  userId          String?  @unique
+  user            User?    @relation(fields: [userId], references: [id])
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("asesores")
 }
 
 // Parametrización de días para calcular la próxima fecha de seguimiento a partir de la fecha de

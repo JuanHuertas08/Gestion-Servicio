@@ -18,6 +18,7 @@ router.use(requireAuth, requireRole(Rol.ADMINISTRADOR, Rol.ASESOR, Rol.CONSULTA)
 const querySchema = z.object({
   anio: z.coerce.number().int().min(2000).max(2100).optional(),
   mes: z.coerce.number().int().min(1).max(12).optional(),
+  asesor: z.string().optional(),
 });
 
 router.get("/kpis", async (req, res, next) => {
@@ -41,8 +42,8 @@ router.get("/filtros", async (_req, res, next) => {
 
 router.get("/ventas-por-periodo", async (req, res, next) => {
   try {
-    const { anio } = querySchema.pick({ anio: true }).parse(req.query);
-    const data = await getVentasPorPeriodo(anio);
+    const { anio, asesor } = querySchema.pick({ anio: true, asesor: true }).parse(req.query);
+    const data = await getVentasPorPeriodo(anio, asesor);
     res.json(data);
   } catch (err) {
     next(err);

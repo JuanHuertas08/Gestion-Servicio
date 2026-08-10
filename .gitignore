@@ -5,3 +5,6 @@ dist/
 
 # Datos reales de negocio (clientes, ventas) - no versionar
 Base de datos.xlsx
+
+# Notas propias con credenciales/URLs reales de despliegue - no versionar
+Ajustes despliegue.txt

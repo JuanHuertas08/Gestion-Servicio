@@ -9,6 +9,7 @@ const percent = new Intl.NumberFormat("es-CO", { style: "percent", maximumFracti
 interface Props {
   anio: string;
   mes: string;
+  asesor: string;
 }
 
 function ChartCard({ title, children }: { title: string; children: React.ReactNode }) {
@@ -35,14 +36,14 @@ function StatCard({ label, value, accent }: { label: string; value: string; acce
   );
 }
 
-export function SeguimientoCharts({ anio, mes }: Props) {
+export function SeguimientoCharts({ anio, mes, asesor }: Props) {
   const [stats, setStats] = useState<SeguimientoStats | null>(null);
 
   useEffect(() => {
     const a = anio ? Number(anio) : undefined;
     const m = anio && mes ? Number(mes) : undefined;
-    getSeguimientoStats(a, m).then(setStats);
-  }, [anio, mes]);
+    getSeguimientoStats(a, m, asesor || undefined).then(setStats);
+  }, [anio, mes, asesor]);
 
   if (!stats) return null;
 

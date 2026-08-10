@@ -11,6 +11,7 @@ import {
   CircularProgress,
 } from "@mui/material";
 import { getDashboardFiltros, getDashboardKpis } from "../../api/dashboard";
+import { listAsesores, type Asesor } from "../../api/asesores";
 import type { DashboardKpis } from "../../api/types";
 import { VentasCharts } from "./VentasCharts";
 import { SeguimientoCharts } from "./SeguimientoCharts";
@@ -48,17 +49,20 @@ export function Dashboard() {
   const [anios, setAnios] = useState<number[]>([]);
   const [anio, setAnio] = useState<string>("");
   const [mes, setMes] = useState<string>("");
+  const [asesores, setAsesores] = useState<Asesor[]>([]);
+  const [asesor, setAsesor] = useState<string>("");
 
   useEffect(() => {
     getDashboardFiltros().then((f) => setAnios(f.anios));
+    listAsesores().then(setAsesores);
   }, []);
 
   useEffect(() => {
     setLoading(true);
-    getDashboardKpis(anio ? Number(anio) : undefined, anio && mes ? Number(mes) : undefined)
+    getDashboardKpis(anio ? Number(anio) : undefined, anio && mes ? Number(mes) : undefined, asesor || undefined)
       .then(setKpis)
       .finally(() => setLoading(false));
-  }, [anio, mes]);
+  }, [anio, mes, asesor]);
 
   return (
     <Box>
@@ -126,6 +130,28 @@ export function Dashboard() {
               </Typography>
             )}
           </Stack>
+
+          <Stack direction="row" spacing={2} sx={{ flexWrap: "wrap", rowGap: 1, alignItems: "center" }}>
+            <Typography variant="body2" sx={{ minWidth: 40, color: "text.secondary" }}>
+              Asesor
+            </Typography>
+            <ToggleButtonGroup
+              value={asesor}
+              exclusive
+              size="small"
+              onChange={(_e, value) => setAsesor(value ?? "")}
+              sx={{ flexWrap: "wrap" }}
+            >
+              <ToggleButton value="" sx={toggleButtonSx}>
+                Todos
+              </ToggleButton>
+              {asesores.map((a) => (
+                <ToggleButton key={a.id} value={a.nombreCompleto} sx={toggleButtonSx}>
+                  {a.nombreCompleto}
+                </ToggleButton>
+              ))}
+            </ToggleButtonGroup>
+          </Stack>
         </Stack>
       </Paper>
 
@@ -146,8 +172,8 @@ export function Dashboard() {
             </Grid>
           </Grid>
 
-          <VentasCharts anio={anio} mes={mes} topAsesores={kpis.topAsesores} />
-          <SeguimientoCharts anio={anio} mes={mes} />
+          <VentasCharts anio={anio} mes={mes} asesor={asesor} topAsesores={kpis.topAsesores} />
+          <SeguimientoCharts anio={anio} mes={mes} asesor={asesor} />
         </>
       )}
     </Box>
