@@ -16,7 +16,7 @@ interface Props {
 }
 
 const DEFAULT_ZONES: GaugeZone[] = [
-  { label: "Pobre", color: "#e53935", hasta: 20 },
+  { label: "Bajo", color: "#e53935", hasta: 20 },
   { label: "Suficiente", color: "#f4a261", hasta: 40 },
   { label: "Bueno", color: "#f6d55c", hasta: 60 },
   { label: "Muy Bueno", color: "#a8d08d", hasta: 80 },
@@ -57,9 +57,11 @@ function valueToAngle(value: number): number {
 }
 
 export function GaugeChart({ value, valueLabel, zones = DEFAULT_ZONES, size = 260 }: Props) {
+  const padSide = 36; // espacio extra a los lados para que las etiquetas de zona no se recorten
   const width = size;
   const height = size * 0.62;
-  const cx = width / 2;
+  const svgWidth = width + padSide * 2;
+  const cx = width / 2 + padSide;
   const cy = height - 8;
   const outerR = width / 2 - 28;
   const innerR = outerR - 22;
@@ -82,7 +84,7 @@ export function GaugeChart({ value, valueLabel, zones = DEFAULT_ZONES, size = 26
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-      <svg width={width} height={height + 4} viewBox={`0 0 ${width} ${height + 4}`}>
+      <svg width={svgWidth} height={height + 4} viewBox={`0 0 ${svgWidth} ${height + 4}`}>
         {zoneArcs.map((z) => (
           <path key={z.label} d={z.path} fill={z.color} />
         ))}
