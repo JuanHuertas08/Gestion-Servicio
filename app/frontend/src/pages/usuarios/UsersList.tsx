@@ -9,6 +9,8 @@ import {
   Chip,
   IconButton,
   Tooltip,
+  Tabs,
+  Tab,
 } from "@mui/material";
 import { DataGrid, type GridColDef } from "@mui/x-data-grid";
 import AddIcon from "@mui/icons-material/Add";
@@ -20,6 +22,7 @@ import { useNavigate } from "react-router-dom";
 import { listUsers, setUserActivo } from "../../api/users";
 import type { Usuario } from "../../api/types";
 import { UserFormDialog } from "./UserFormDialog";
+import { AsesoresAdminList } from "./AsesoresAdminList";
 import { useAuth } from "../../auth/AuthContext";
 
 const ROLE_LABEL: Record<string, string> = {
@@ -29,6 +32,23 @@ const ROLE_LABEL: Record<string, string> = {
 };
 
 export function UsersList() {
+  const [tab, setTab] = useState(0);
+
+  return (
+    <Box>
+      <Typography variant="h5" sx={{ mb: 2 }}>
+        Administración de usuarios
+      </Typography>
+      <Tabs value={tab} onChange={(_e, v) => setTab(v)} sx={{ mb: 2 }}>
+        <Tab label="Usuarios" />
+        <Tab label="Asesores (PSSR)" />
+      </Tabs>
+      {tab === 0 ? <UsuariosTab /> : <AsesoresAdminList />}
+    </Box>
+  );
+}
+
+function UsuariosTab() {
   const { user: currentUser } = useAuth();
   const navigate = useNavigate();
   const [rows, setRows] = useState<Usuario[]>([]);
@@ -134,8 +154,7 @@ export function UsersList() {
 
   return (
     <Box>
-      <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "center", mb: 2 }}>
-        <Typography variant="h5">Administración de usuarios</Typography>
+      <Stack direction="row" sx={{ justifyContent: "flex-end", mb: 2 }}>
         <Button
           variant="contained"
           startIcon={<AddIcon />}

@@ -3,7 +3,7 @@ import rateLimit from "express-rate-limit";
 import { z } from "zod";
 import { changePassword, login } from "./auth.service";
 import { requireAuth } from "../../middleware/auth";
-import { env } from "../../config/env";
+import { cookieOptions, sessionMaxAgeMs } from "../../config/cookie";
 import { prisma } from "../../config/prisma";
 import { HttpError } from "../../middleware/errorHandler";
 
@@ -22,21 +22,11 @@ const loginSchema = z.object({
   password: z.string().min(1),
 });
 
-// En desarrollo, frontend y backend comparten "site" (localhost en distinto puerto), así que
-// sameSite=strict funciona y da mejor protección CSRF. En producción, frontend (Vercel) y backend
-// (Render) están en dominios distintos: la cookie solo viaja entre sitios si sameSite=none, lo que
-// exige secure=true (por eso van atados a la misma condición, env.cookieSecure).
-const cookieOptions = {
-  httpOnly: true,
-  sameSite: (env.cookieSecure ? "none" : "strict") as "none" | "strict",
-  secure: env.cookieSecure,
-};
-
 router.post("/login", loginLimiter, async (req, res, next) => {
   try {
     const { numeroDocumento, password } = loginSchema.parse(req.body);
     const { token, user } = await login(numeroDocumento, password);
-    res.cookie("token", token, { ...cookieOptions, maxAge: 8 * 60 * 60 * 1000 });
+    res.cookie("token", token, { ...cookieOptions, maxAge: sessionMaxAgeMs });
     res.json({
       id: user.id,
       nombres: user.nombres,

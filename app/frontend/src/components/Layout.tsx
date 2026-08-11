@@ -23,6 +23,7 @@ import EventNoteIcon from "@mui/icons-material/EventNoteOutlined";
 import LogoutIcon from "@mui/icons-material/LogoutOutlined";
 import LockResetIcon from "@mui/icons-material/LockResetOutlined";
 import { useAuth } from "../auth/AuthContext";
+import { useIdleLogout } from "../auth/useIdleLogout";
 import type { Rol } from "../api/types";
 
 const DRAWER_WIDTH = 240;
@@ -56,6 +57,8 @@ export function Layout() {
   const navigate = useNavigate();
   const location = useLocation();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+
+  useIdleLogout();
 
   if (!user) return null;
 

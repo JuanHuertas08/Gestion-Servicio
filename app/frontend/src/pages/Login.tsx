@@ -1,15 +1,17 @@
 import { useState, type FormEvent } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Box, Paper, TextField, Button, Typography, Alert } from "@mui/material";
 import { useAuth } from "../auth/AuthContext";
 
 export function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [numeroDocumento, setNumeroDocumento] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const sesionExpirada = searchParams.get("motivo") === "inactividad";
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -50,6 +52,11 @@ export function Login() {
         <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
           Ingrese con su número de documento
         </Typography>
+        {sesionExpirada && (
+          <Alert severity="info" sx={{ mb: 2 }}>
+            Su sesión se cerró automáticamente por inactividad.
+          </Alert>
+        )}
         <form onSubmit={handleSubmit}>
           <TextField
             label="Número de documento"

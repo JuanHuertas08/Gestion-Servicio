@@ -27,7 +27,7 @@ export async function login(numeroDocumento: string, password: string) {
   const token = jwt.sign(
     { sub: user.id, rol: user.rol, numeroDocumento: user.numeroDocumento },
     env.jwtSecret,
-    { expiresIn: env.jwtExpiresIn as any }
+    { expiresIn: env.sessionIdleMinutes * 60 }
   );
 
   return { token, user };

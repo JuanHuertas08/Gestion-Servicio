@@ -4,6 +4,7 @@ import { theme } from "./theme";
 import { AuthProvider } from "./auth/AuthContext";
 import { ProtectedRoute } from "./auth/ProtectedRoute";
 import { Layout } from "./components/Layout";
+import { GlobalLoadingBar } from "./components/GlobalLoadingBar";
 import { Login } from "./pages/Login";
 import { CambiarPassword } from "./pages/CambiarPassword";
 import { UsersList } from "./pages/usuarios/UsersList";
@@ -16,6 +17,7 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
+      <GlobalLoadingBar />
       <BrowserRouter>
         <AuthProvider>
           <Routes>
