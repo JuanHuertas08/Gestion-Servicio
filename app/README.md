@@ -66,9 +66,9 @@ Variable de entorno en `app/frontend/.env` (ver `.env.example`): `VITE_API_URL`.
 
 | Rol | Acceso |
 |---|---|
-| Administrador | Sin restricciones: usuarios, auditoría, facturación (carga + parametrización), tablero, proyección de seguimiento (todos los clientes) |
-| Asesor | Tablero de indicadores y Proyección de seguimiento (restringida a los clientes cuya última factura le pertenece a él, por PSSR). Sin acceso a Usuarios ni a Facturación |
-| Consulta | Solo consulta al Tablero de indicadores. Sin acceso a Usuarios, Facturación ni Proyección |
+| Administrador | Sin restricciones: usuarios, auditoría, facturación (carga + parametrización), tablero, proyección de seguimiento (todos los clientes), órdenes de trabajo (todas) |
+| Asesor | Tablero de indicadores, Proyección de seguimiento (restringida a los clientes cuya última factura le pertenece a él, por PSSR) y Órdenes de trabajo (todas, acceso colaborativo). Sin acceso a Usuarios ni a Facturación |
+| Consulta | Solo consulta al Tablero de indicadores. Sin acceso a Usuarios, Facturación, Proyección ni Órdenes de trabajo |
 
 Las restricciones se aplican tanto en el frontend (rutas protegidas / sidebar) como en el backend (cada
 router valida el rol en el middleware), así que no basta con ocultar el enlace: la API rechaza con 403
@@ -118,6 +118,19 @@ cualquier llamado fuera del alcance del rol.
    ha registrado un seguimiento, se calcula desde la última fecha de facturación. Un Asesor solo puede ver
    (listado, historial) y registrar seguimiento de clientes cuya última factura quedó a su nombre
    (comparando el PSSR de la factura contra su nombre completo).
+5. **Órdenes de trabajo**: CRUD completo (crear, consultar, editar y "eliminar") con acceso colaborativo —
+   cualquier Administrador o Asesor puede gestionar cualquier orden, igual que el Excel compartido
+   ("Solicitudes_Servicio") que reemplaza. "Eliminar" no borra la fila: pasa el Estado a Cancelado, y la
+   orden queda visible en el historial. El formulario de creación/edición cubre las mismas columnas del
+   Excel de origen (solicitud, cliente/contacto, equipo, programación y cierre), con `Estado`
+   (Radicado → Programado → En proceso → Cerrado, o Cancelado) y `Prioridad` como catálogos fijos, y
+   `Tipo de servicio` normalizado a un catálogo cerrado (Preventivo, Correctivo, Preventivo y Correctivo,
+   Diagnóstico, Cortesía, Garantía, Entrega) que colapsa las variantes de texto libre del Excel original.
+   Botón **"Cargar desde PDF"**: sube un PDF (p. ej. el "PICKING" que genera SAP al separar repuestos) y
+   extrae, si están presentes, Cliente/NIT/Número de cliente SAP/Ciudad para prellenar el formulario — es
+   best-effort (el layout de esos PDF no trae Tipo de Servicio, fechas de programación, técnico ni datos
+   del equipo), así que el resto siempre se completa a mano. Filtros por Cliente, Asesor, Estado, Prioridad
+   y Ciudad. Sin acceso para el rol Consulta.
 
 ## Notas de seguridad
 

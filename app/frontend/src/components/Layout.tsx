@@ -20,6 +20,7 @@ import DashboardIcon from "@mui/icons-material/DashboardOutlined";
 import GroupIcon from "@mui/icons-material/GroupOutlined";
 import ReceiptLongIcon from "@mui/icons-material/ReceiptLongOutlined";
 import EventNoteIcon from "@mui/icons-material/EventNoteOutlined";
+import AssignmentIcon from "@mui/icons-material/AssignmentOutlined";
 import LogoutIcon from "@mui/icons-material/LogoutOutlined";
 import LockResetIcon from "@mui/icons-material/LockResetOutlined";
 import { useAuth } from "../auth/AuthContext";
@@ -48,6 +49,12 @@ const NAV_ITEMS: NavItem[] = [
     label: "Proyección de seguimiento",
     path: "/proyeccion",
     icon: <EventNoteIcon />,
+    roles: ["ADMINISTRADOR", "ASESOR"],
+  },
+  {
+    label: "Órdenes de trabajo",
+    path: "/ordenes-trabajo",
+    icon: <AssignmentIcon />,
     roles: ["ADMINISTRADOR", "ASESOR"],
   },
 ];

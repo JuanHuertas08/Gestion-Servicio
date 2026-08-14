@@ -38,6 +38,35 @@ enum EstadoSeguimiento {
   REALIZADO
 }
 
+// Flujo real (ver hoja "indicaciones" del Excel de origen): nace RADICADO cuando el asesor la
+// crea, un coordinador la mueve a PROGRAMADO/EN_PROCESO a medida que avanza, y termina en CERRADO
+// o CANCELADO. "Eliminar" en la UI no borra la fila: la pasa a CANCELADO.
+enum EstadoOrdenTrabajo {
+  RADICADO
+  PROGRAMADO
+  EN_PROCESO
+  CERRADO
+  CANCELADO
+}
+
+enum PrioridadOrdenTrabajo {
+  ALTA
+  MEDIA
+  BAJA
+}
+
+// Colapsa las variantes libres encontradas en el Excel de origen (p.ej. "P YC" y "PV y CR" ->
+// PREVENTIVO_CORRECTIVO, "DIAGNOSTICO"/"Diagnóstico" -> DIAGNOSTICO) a un catálogo fijo.
+enum TipoServicioOrdenTrabajo {
+  PREVENTIVO
+  CORRECTIVO
+  PREVENTIVO_CORRECTIVO
+  DIAGNOSTICO
+  CORTESIA
+  GARANTIA
+  ENTREGA
+}
+
 model User {
   id              String   @id @default(cuid())
   nombres         String
@@ -58,6 +87,8 @@ model User {
   seguimientosRegistrados ClienteSeguimiento[]
   parametrosSeguimientoActualizados ParametroSeguimiento[]
   asesor         Asesor?
+  ordenesTrabajoCreadas     OrdenTrabajo[] @relation("OrdenTrabajoCreadaPor")
+  ordenesTrabajoActualizadas OrdenTrabajo[] @relation("OrdenTrabajoActualizadaPor")
 
   @@map("users")
 }
@@ -219,4 +250,67 @@ model ParametroSeguimiento {
   updatedAt        DateTime @updatedAt
 
   @@map("parametros_seguimiento")
+}
+
+// Órdenes de trabajo: el asesor la crea a partir de una solicitud de servicio (con base en las
+// columnas del Excel "Solicitudes_Servicio" que reemplaza) y cualquier Asesor o Administrador
+// puede consultarla/editarla/cancelarla (acceso colaborativo, igual que el Excel compartido que
+// se venía usando). "Eliminar" en la UI no borra la fila: pasa el estado a CANCELADO.
+model OrdenTrabajo {
+  id      String @id @default(cuid())
+  numero  Int    @unique @default(autoincrement()) // consecutivo interno de visualización
+
+  // --- Solicitud (la diligencia el asesor) ---
+  fechaSolicitud      DateTime
+  cliente             String
+  clienteNit          String? // no viene en el Excel de origen; se puede prellenar desde un PDF
+  numeroClienteSap    String? // idem, prellenado desde PDF si está disponible
+  asesorPssr          String
+  valor               Decimal?                  @db.Decimal(18, 2)
+  horasServicio       Decimal?                  @db.Decimal(10, 2)
+  horasDesplazamiento Decimal?                  @db.Decimal(10, 2)
+  ordenTrabajoNumero  String? // número de orden/pedido (SAP); texto libre, a veces queda pendiente
+  tipoServicio        TipoServicioOrdenTrabajo
+  descripcionServicio String?
+  sucursal            String?
+  direccion           String?
+  ciudad              String?
+  departamento        String?
+  personaContacto     String?
+  correoContacto      String?
+  telefonoContacto    String?
+  marca               String?
+  modelo              String?
+  serialMaquina       String?
+  coordinadorAltura   Boolean @default(false)
+  equipoApoyo         Boolean @default(false)
+  fechaSugerida       DateTime?
+
+  // --- Programación / cierre (las diligencia el coordinador, pero cualquiera puede editar hoy) ---
+  fechaProgramacionReal   DateTime?
+  horaServicio            String? // "HH:mm", texto libre como en el Excel de origen
+  estado                  EstadoOrdenTrabajo    @default(RADICADO)
+  prioridad               PrioridadOrdenTrabajo @default(MEDIA)
+  tecnicoAsignado         String?
+  codigoSap               String?
+  fechaCierre             DateTime?
+  observaciones           String?
+  programadorSegunSede    String?
+  unidadIntervenirTaller  Boolean @default(false)
+  tipoTrabajo             String?
+  fechaTrasladoTaller     DateTime?
+  reporteClick            Boolean @default(false)
+
+  creadoPorId       String
+  creadoPor         User     @relation("OrdenTrabajoCreadaPor", fields: [creadoPorId], references: [id])
+  actualizadoPorId  String?
+  actualizadoPor    User?    @relation("OrdenTrabajoActualizadaPor", fields: [actualizadoPorId], references: [id])
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([cliente])
+  @@index([asesorPssr])
+  @@index([estado])
+  @@index([fechaSolicitud])
+  @@map("ordenes_trabajo")
 }

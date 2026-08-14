@@ -12,6 +12,7 @@ import { AuditLogView } from "./pages/usuarios/AuditLogView";
 import { Dashboard } from "./pages/dashboard/Dashboard";
 import { FacturacionPage } from "./pages/facturacion/FacturacionPage";
 import { ProyeccionPage } from "./pages/proyeccion/ProyeccionPage";
+import { OrdenesTrabajoList } from "./pages/ordenesTrabajo/OrdenesTrabajoList";
 
 function App() {
   return (
@@ -34,6 +35,7 @@ function App() {
                 </Route>
                 <Route element={<ProtectedRoute allowedRoles={["ADMINISTRADOR", "ASESOR"]} />}>
                   <Route path="/proyeccion" element={<ProyeccionPage />} />
+                  <Route path="/ordenes-trabajo" element={<OrdenesTrabajoList />} />
                 </Route>
               </Route>
             </Route>

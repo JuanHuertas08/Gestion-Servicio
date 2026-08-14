@@ -100,3 +100,58 @@ export interface DashboardKpis {
   numFacturas: number;
   topAsesores: { pssr: string | null; ventaNeta: number }[];
 }
+
+export type EstadoOrdenTrabajo = "RADICADO" | "PROGRAMADO" | "EN_PROCESO" | "CERRADO" | "CANCELADO";
+export type PrioridadOrdenTrabajo = "ALTA" | "MEDIA" | "BAJA";
+export type TipoServicioOrdenTrabajo =
+  | "PREVENTIVO"
+  | "CORRECTIVO"
+  | "PREVENTIVO_CORRECTIVO"
+  | "DIAGNOSTICO"
+  | "CORTESIA"
+  | "GARANTIA"
+  | "ENTREGA";
+
+export interface OrdenTrabajo {
+  id: string;
+  numero: number;
+  fechaSolicitud: string;
+  cliente: string;
+  clienteNit: string | null;
+  numeroClienteSap: string | null;
+  asesorPssr: string;
+  valor: string | null;
+  horasServicio: string | null;
+  horasDesplazamiento: string | null;
+  ordenTrabajoNumero: string | null;
+  tipoServicio: TipoServicioOrdenTrabajo;
+  descripcionServicio: string | null;
+  sucursal: string | null;
+  direccion: string | null;
+  ciudad: string | null;
+  departamento: string | null;
+  personaContacto: string | null;
+  correoContacto: string | null;
+  telefonoContacto: string | null;
+  marca: string | null;
+  modelo: string | null;
+  serialMaquina: string | null;
+  coordinadorAltura: boolean;
+  equipoApoyo: boolean;
+  fechaSugerida: string | null;
+  fechaProgramacionReal: string | null;
+  horaServicio: string | null;
+  estado: EstadoOrdenTrabajo;
+  prioridad: PrioridadOrdenTrabajo;
+  tecnicoAsignado: string | null;
+  codigoSap: string | null;
+  fechaCierre: string | null;
+  observaciones: string | null;
+  programadorSegunSede: string | null;
+  unidadIntervenirTaller: boolean;
+  tipoTrabajo: string | null;
+  fechaTrasladoTaller: string | null;
+  reporteClick: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
