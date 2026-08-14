@@ -74,7 +74,7 @@ export function Layout() {
       <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
         <Toolbar sx={{ gap: 2 }}>
           <Typography variant="h6" noWrap sx={{ flexGrow: 1 }}>
-            Control Servicio
+            Gestión Servicio
           </Typography>
           <Typography variant="body2" sx={{ opacity: 0.85 }}>
             {user.nombres} {user.apellidos} · {user.rol}

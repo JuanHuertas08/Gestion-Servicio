@@ -47,7 +47,7 @@ export function Login() {
         elevation={6}
       >
         <Typography variant="h5" gutterBottom sx={{ color: "#1A1A1A" }}>
-          Control Servicio
+          Gestión Servicio
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
           Ingrese con su número de documento
