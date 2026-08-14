@@ -10,6 +10,7 @@ import {
   normalizeText,
   normalizeUpperKey,
 } from "../../utils/dateNormalizer";
+import { computeClaveDedupe } from "../../utils/dedupeKey";
 
 export interface ParsedFacturaRow {
   rowNumber: number;
@@ -68,6 +69,10 @@ export function parseFacturacionWorkbook(buffer: Buffer): ParseResult {
     if (!factura) errors.push("FACTURA vacía");
     if (!pedido) errors.push("Pedido vacío");
 
+    const cliente = normalizeText(row[idx.cliente]);
+    const fechaFacturacion = normalizeExcelDate(row[idx.fechaFacturacion]);
+    const tipoFacturacion = normalizeUpperKey(row[idx.tipoFacturacion]);
+
     parsedRows.push({
       rowNumber: i + 1,
       errors,
@@ -80,10 +85,11 @@ export function parseFacturacionWorkbook(buffer: Buffer): ParseResult {
         motivoPedido: normalizeText(row[idx.motivoPedido]),
         pedido: pedido ?? "",
         marca: normalizeUpperKey(row[idx.marca]),
-        cliente: normalizeText(row[idx.cliente]),
+        cliente,
         factura: factura ?? "",
         fechaDocumento: normalizeExcelDate(row[idx.fechaDocumento]),
-        fechaFacturacion: normalizeExcelDate(row[idx.fechaFacturacion]),
+        fechaFacturacion,
+        claveDedupe: computeClaveDedupe(cliente, factura, fechaFacturacion, tipoFacturacion),
         piezas: normalizeDecimal(row[idx.piezas]),
         ventaNeta: normalizeDecimal(row[idx.ventaNeta]),
         grossMarginUsd: normalizeDecimal(row[idx.grossMarginUsd]),
@@ -106,7 +112,7 @@ export function parseFacturacionWorkbook(buffer: Buffer): ParseResult {
         fechaPrimeraCompra: normalizeExcelDate(row[idx.fechaPrimeraCompra]),
         primerMesCompra: normalizeText(row[idx.primerMesCompra]),
         esquemaServicio: normalizeUpperKey(row[idx.esquemaServicio]),
-        tipoFacturacion: normalizeUpperKey(row[idx.tipoFacturacion]),
+        tipoFacturacion,
         ultimaFactura: normalizeExcelDate(row[idx.ultimaFactura]),
         seguimientoFecha: normalizeExcelDate(row[idx.seguimientoFecha]),
       },

@@ -26,6 +26,7 @@ function buildRangoFechas(params: DashboardParams): { gte: Date; lt: Date } | un
 function buildFacturaWhere(params: DashboardParams): Prisma.FacturaWhereInput {
   const rango = buildRangoFechas(params);
   return {
+    activo: true,
     ...(rango ? { fechaFacturacion: rango } : {}),
     ...(params.asesor ? { pssr: { equals: params.asesor, mode: "insensitive" as const } } : {}),
   };
@@ -89,7 +90,8 @@ export async function getVentasPorPeriodo(anio?: number, asesor?: string) {
     const rows = await prisma.$queryRaw<{ mes: number; venta: string | null }[]>`
       SELECT EXTRACT(MONTH FROM "fechaFacturacion")::int AS mes, SUM("ventaNeta") AS venta
       FROM facturas
-      WHERE EXTRACT(YEAR FROM "fechaFacturacion") = ${anio}
+      WHERE "activo" = true
+        AND EXTRACT(YEAR FROM "fechaFacturacion") = ${anio}
         AND (${asesor ?? null}::text IS NULL OR "pssr" ILIKE ${asesor ?? ""})
       GROUP BY 1
       ORDER BY 1
@@ -100,7 +102,8 @@ export async function getVentasPorPeriodo(anio?: number, asesor?: string) {
   const rows = await prisma.$queryRaw<{ anio: number; venta: string | null }[]>`
     SELECT EXTRACT(YEAR FROM "fechaFacturacion")::int AS anio, SUM("ventaNeta") AS venta
     FROM facturas
-    WHERE "fechaFacturacion" IS NOT NULL
+    WHERE "activo" = true
+      AND "fechaFacturacion" IS NOT NULL
       AND (${asesor ?? null}::text IS NULL OR "pssr" ILIKE ${asesor ?? ""})
     GROUP BY 1
     ORDER BY 1
@@ -231,7 +234,8 @@ export async function getDashboardFiltros() {
   const rows = await prisma.$queryRaw<{ anio: number }[]>`
     SELECT DISTINCT EXTRACT(YEAR FROM "fechaFacturacion")::int AS anio
     FROM facturas
-    WHERE "fechaFacturacion" IS NOT NULL
+    WHERE "activo" = true
+      AND "fechaFacturacion" IS NOT NULL
     ORDER BY anio DESC
   `;
   return { anios: rows.map((r) => r.anio) };

@@ -54,49 +54,64 @@ export async function importFacturacion(params: {
   });
 
   try {
-    const existentes = await prisma.factura.findMany({
-      where: {
-        OR: validRows.map((r) => ({
-          factura: r.data.factura as string,
-          pedido: r.data.pedido as string,
-        })),
-      },
-      select: { factura: true, pedido: true },
+    // Llave combinada (cliente + factura + fechaFacturacion + tipoFacturacion) por fila; null si a
+    // la fila le falta algún componente (esas filas nunca compiten por "ser la activa" de nada).
+    const clavesEnArchivo = Array.from(
+      new Set(
+        validRows
+          .map((r) => (r.data as Record<string, unknown>).claveDedupe as string | null)
+          .filter((v): v is string => !!v)
+      )
+    );
+
+    const activasPrevias = clavesEnArchivo.length
+      ? await prisma.factura.findMany({
+          where: { activo: true, claveDedupe: { in: clavesEnArchivo } },
+          select: { claveDedupe: true },
+        })
+      : [];
+    const clavesYaActivas = new Set(activasPrevias.map((f) => f.claveDedupe as string));
+
+    if (clavesEnArchivo.length > 0) {
+      // Inactivar de una vez todos los activos previos que esta carga va a reemplazar.
+      await prisma.factura.updateMany({
+        where: { activo: true, claveDedupe: { in: clavesEnArchivo } },
+        data: { activo: false },
+      });
+    }
+
+    // Si la misma llave se repite dentro del propio archivo, solo la última ocurrencia queda
+    // activa (las anteriores se insertan directamente como inactivas).
+    const ultimoIndicePorClave = new Map<string, number>();
+    validRows.forEach((r, i) => {
+      const clave = (r.data as Record<string, unknown>).claveDedupe as string | null;
+      if (clave) ultimoIndicePorClave.set(clave, i);
     });
-    const existentesSet = new Set(existentes.map((e) => `${e.factura}::${e.pedido}`));
 
     let nuevas = 0;
     let actualizadas = 0;
+    validRows.forEach((r) => {
+      const clave = (r.data as Record<string, unknown>).claveDedupe as string | null;
+      if (clave && clavesYaActivas.has(clave)) actualizadas++;
+      else nuevas++;
+    });
 
+    // Nunca se actualiza en el sitio: cada carga siempre INSERTA filas nuevas, así se conserva el
+    // historial completo (quién quedó activo y qué quedó inactivado, y cuándo).
     for (let i = 0; i < validRows.length; i += BATCH_SIZE) {
       const chunk = validRows.slice(i, i + BATCH_SIZE);
-      await prisma.$transaction(
-        chunk.map((r) => {
+      await prisma.factura.createMany({
+        data: chunk.map((r, chunkIdx) => {
           const data = r.data as Record<string, unknown>;
-          return prisma.factura.upsert({
-            where: {
-              factura_pedido: {
-                factura: data.factura as string,
-                pedido: data.pedido as string,
-              },
-            },
-            create: {
-              ...(data as any),
-              importBatchId: batch.id,
-              subidoPorId,
-            },
-            update: {
-              ...(data as any),
-              importBatchId: batch.id,
-              subidoPorId,
-            },
-          });
-        })
-      );
-      chunk.forEach((r) => {
-        const key = `${r.data.factura}::${r.data.pedido}`;
-        if (existentesSet.has(key)) actualizadas++;
-        else nuevas++;
+          const clave = data.claveDedupe as string | null;
+          const esLaActiva = !clave || ultimoIndicePorClave.get(clave) === i + chunkIdx;
+          return {
+            ...(data as any),
+            activo: esLaActiva,
+            importBatchId: batch.id,
+            subidoPorId,
+          };
+        }),
       });
     }
 
@@ -148,6 +163,7 @@ export async function listFacturas(params: ListFacturasParams) {
   const { page, pageSize, centro, marca, pssr, cliente, fechaDesde, fechaHasta } = params;
 
   const where = {
+    activo: true,
     ...(centro ? { centro } : {}),
     ...(marca ? { marca } : {}),
     ...(pssr ? { pssr: { contains: pssr, mode: "insensitive" as const } } : {}),

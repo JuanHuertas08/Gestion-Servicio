@@ -91,11 +91,17 @@ cualquier llamado fuera del alcance del rol.
      módulo de Proyección — un seguimiento "vencido" es uno pendiente cuya fecha de próximo seguimiento
      proyectada ya pasó.
 3. **Facturación**: carga del Excel de ventas (hoja `Ingresos`, mismas 39 columnas del archivo de origen).
-   Usa upsert por `(Factura, Pedido)`, así que volver a cargar el mismo archivo actualiza en vez de duplicar.
-   El Administrador puede configurar (botón "Configurar seguimiento") los días de seguimiento por tipo de
-   facturación (Repuestos/Servicio/Estibadores, valores por defecto 30/90/180); la grilla calcula y muestra
-   la "Próxima fecha de seguimiento" de cada renglón (fecha de facturación + días configurados). Los cambios
-   quedan en la auditoría.
+   Cada carga siempre **inserta** filas nuevas (nunca actualiza en el sitio), para conservar el historial
+   completo de qué se cargó y cuándo. Cada fila nace en estado **Activo** y tiene una llave combinada
+   (`claveDedupe`: cliente + factura + fecha de facturación + tipo de facturación, normalizados) — si una
+   fila nueva coincide en esa llave con una fila activa existente (de esta carga o de una anterior), la fila
+   anterior se **inactiva** automáticamente y solo la última cargada queda activa (hay un índice único parcial
+   en base de datos que garantiza como máximo una fila activa por llave). Toda la aplicación (listado de
+   Facturación, Tablero, Proyección) solo lee filas con `activo = true`; las inactivas quedan en la base de
+   datos únicamente como historial, no auditables desde la UI todavía. El Administrador puede configurar
+   (botón "Configurar seguimiento") los días de seguimiento por tipo de facturación (Repuestos/Servicio/
+   Estibadores, valores por defecto 30/90/180); la grilla calcula y muestra la "Próxima fecha de seguimiento"
+   de cada renglón (fecha de facturación + días configurados). Los cambios quedan en la auditoría.
 4. **Proyección de seguimiento**: no tiene carga de Excel propia — se deriva de la Facturación ya cargada.
    Para cada combinación (Cliente, Tipo de Facturación: Repuestos/Servicio/Estibadores) se toma el renglón
    con la fecha de facturación más reciente. Encima de la grilla hay un resumen (clientes asignados,

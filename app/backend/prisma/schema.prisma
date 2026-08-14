@@ -137,6 +137,16 @@ model Factura {
   ultimaFactura     DateTime?
   seguimientoFecha  DateTime?
 
+  // Estado activo/inactivo: al recargar un archivo, si una fila nueva coincide en claveDedupe con
+  // una fila activa existente, esa fila anterior se inactiva y la nueva queda como la activa. Toda
+  // la aplicación (listados, tablero, proyección) solo debe leer registros con activo = true.
+  activo            Boolean     @default(true)
+  // Llave combinada (cliente + factura + fechaFacturacion + tipoFacturacion, normalizados) usada
+  // para detectar recargas del mismo renglón. Null si a la fila le falta alguno de esos cuatro
+  // datos (ver src/utils/dedupeKey.ts). El índice único parcial que garantiza como máximo un
+  // activo por llave se agrega a mano en la migración (Prisma no expresa índices parciales).
+  claveDedupe       String?
+
   importBatchId     String
   importBatch       ImportBatch @relation(fields: [importBatchId], references: [id])
   subidoPorId       String
@@ -144,11 +154,12 @@ model Factura {
   createdAt         DateTime    @default(now())
   updatedAt         DateTime    @updatedAt
 
-  @@unique([factura, pedido])
   @@index([pssr])
   @@index([fechaFacturacion])
   @@index([cliente])
   @@index([centro])
+  @@index([activo])
+  @@index([claveDedupe])
   @@map("facturas")
 }
 

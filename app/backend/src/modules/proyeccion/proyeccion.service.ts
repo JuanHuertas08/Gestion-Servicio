@@ -22,6 +22,7 @@ function buildWhere(params: BaseSeguimientoParams): Prisma.FacturaWhereInput {
   const { asesor, cliente, tipoFacturacion, requesterRol, requesterNombreCompleto } = params;
 
   return {
+    activo: true,
     cliente: { not: null },
     tipoFacturacion: { not: null },
     ...(cliente ? { cliente: { contains: cliente, mode: "insensitive" as const } } : {}),
@@ -142,7 +143,7 @@ export async function listFiltrosSeguimiento(requesterRol: Rol, requesterNombreC
   const [asesores, tipos] = await Promise.all([
     listAsesores({ requesterRol, requesterNombreCompleto }),
     prisma.factura.findMany({
-      where: { tipoFacturacion: { not: null }, ...(asesorFiltro ? { pssr: asesorFiltro } : {}) },
+      where: { activo: true, tipoFacturacion: { not: null }, ...(asesorFiltro ? { pssr: asesorFiltro } : {}) },
       distinct: ["tipoFacturacion"],
       select: { tipoFacturacion: true },
       orderBy: { tipoFacturacion: "asc" },
@@ -174,7 +175,7 @@ async function assertPropietarioAsesor(
 ) {
   if (requesterRol !== Rol.ASESOR) return;
   const ultima = await prisma.factura.findFirst({
-    where: { cliente, tipoFacturacion },
+    where: { activo: true, cliente, tipoFacturacion },
     orderBy: { fechaFacturacion: "desc" },
     select: { pssr: true },
   });
