@@ -13,7 +13,7 @@ import { Dashboard } from "./pages/dashboard/Dashboard";
 import { FacturacionPage } from "./pages/facturacion/FacturacionPage";
 import { ProyeccionPage } from "./pages/proyeccion/ProyeccionPage";
 import { OrdenesTrabajoList } from "./pages/ordenesTrabajo/OrdenesTrabajoList";
-import { AlistamientosList } from "./pages/alistamientos/AlistamientosList";
+import { ServicioPage } from "./pages/servicio/ServicioPage";
 import { SinAccesoPage } from "./pages/SinAccesoPage";
 import { useAuth } from "./auth/AuthContext";
 
@@ -41,7 +41,7 @@ function App() {
                   <Route path="/usuarios" element={<UsersList />} />
                   <Route path="/usuarios/auditoria" element={<AuditLogView />} />
                   <Route path="/usuarios/:id/auditoria" element={<AuditLogView />} />
-                  <Route path="/alistamientos" element={<AlistamientosList />} />
+                  <Route path="/servicio" element={<ServicioPage />} />
                 </Route>
                 <Route element={<ProtectedRoute allowedRoles={["ADMINISTRADOR", "ASESOR"]} />}>
                   <Route path="/proyeccion" element={<ProyeccionPage />} />

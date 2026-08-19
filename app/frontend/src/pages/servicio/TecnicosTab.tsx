@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { Box, Typography, Button, TextField, MenuItem, Stack, Chip, IconButton, Tooltip } from "@mui/material";
+import { Box, Button, TextField, MenuItem, Stack, Chip, IconButton, Tooltip } from "@mui/material";
 import { DataGrid, type GridColDef } from "@mui/x-data-grid";
 import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/EditOutlined";
@@ -17,7 +17,7 @@ function capacidadPromedio(tecnico: Tecnico): string {
   return promedio % 1 === 0 ? String(promedio) : promedio.toFixed(1);
 }
 
-export function AlistamientosList() {
+export function TecnicosTab() {
   const [rows, setRows] = useState<Tecnico[]>([]);
   const [estado, setEstado] = useState<"" | "ACTIVO" | "INACTIVO">("");
   const [loading, setLoading] = useState(false);
@@ -129,8 +129,7 @@ export function AlistamientosList() {
 
   return (
     <Box>
-      <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "center", mb: 2 }}>
-        <Typography variant="h5">Administración de alistamientos</Typography>
+      <Stack direction="row" sx={{ justifyContent: "flex-end", mb: 2 }}>
         <Button
           variant="contained"
           startIcon={<AddIcon />}

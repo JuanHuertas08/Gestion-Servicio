@@ -66,8 +66,8 @@ Variable de entorno en `app/frontend/.env` (ver `.env.example`): `VITE_API_URL`.
 
 | Rol | Acceso |
 |---|---|
-| Administrador | Sin restricciones: usuarios, auditoría, facturación (carga + parametrización), tablero, proyección de seguimiento (todos los clientes), órdenes de trabajo (todas), administración de alistamientos |
-| Asesor | Tablero de indicadores, Proyección de seguimiento (restringida a los clientes cuya última factura le pertenece a él, por PSSR) y Órdenes de trabajo (todas, acceso colaborativo). Sin acceso a Usuarios, Facturación ni Alistamientos |
+| Administrador | Sin restricciones: usuarios, auditoría, facturación (carga + parametrización), tablero, proyección de seguimiento (todos los clientes), órdenes de trabajo (todas), Servicio (administración de técnicos + solicitud de servicio) |
+| Asesor | Tablero de indicadores, Proyección de seguimiento (restringida a los clientes cuya última factura le pertenece a él, por PSSR) y Órdenes de trabajo (todas, acceso colaborativo). Sin acceso a Usuarios, Facturación ni Servicio |
 | Consulta | Solo consulta al Tablero de indicadores. Sin acceso a ningún otro módulo |
 | Técnico de Servicio | Sin acceso a ningún módulo todavía — ve una pantalla de espera al ingresar. A futuro entrará a "Agenda de Servicio" (aún no construido) a ver sus servicios programados |
 
@@ -132,14 +132,22 @@ cualquier llamado fuera del alcance del rol.
    best-effort (el layout de esos PDF no trae Tipo de Servicio, fechas de programación, técnico ni datos
    del equipo), así que el resto siempre se completa a mano. Filtros por Cliente, Asesor, Estado, Prioridad
    y Ciudad. Sin acceso para el rol Consulta.
-6. **Administración de alistamientos** (solo Administrador): maestro de técnicos — nombres, apellidos,
-   cargo, teléfono y correo, más una **capacidad diaria por mes** (Ene-Dic, sin año: es una plantilla que
-   se reutiliza cada año hasta que se cambie). El formulario incluye un atajo "Aplicar a los 12 meses"
-   para no tener que escribir el mismo número doce veces. Al crear/editar un usuario con el nuevo rol
-   **Técnico de Servicio**, se vincula automáticamente al técnico del maestro con el mismo nombre (mismo
-   patrón que el maestro de Asesores) — ese rol hoy no tiene acceso a ningún módulo (ve una pantalla de
-   espera al ingresar); a futuro entrará a un módulo "Agenda de Servicio" (todavía no construido) a ver
-   sus servicios programados.
+6. **Servicio** (solo Administrador), con dos pestañas — una tercera, "Servicios programados", queda
+   pendiente para más adelante:
+   - **Administración de técnicos**: maestro de técnicos — nombres, apellidos, cargo, teléfono y correo,
+     más una **capacidad diaria por mes** (Ene-Dic, sin año: es una plantilla que se reutiliza cada año
+     hasta que se cambie). El formulario incluye un atajo "Aplicar a los 12 meses" para no tener que
+     escribir el mismo número doce veces. Al crear/editar un usuario con el nuevo rol **Técnico de
+     Servicio**, se vincula automáticamente al técnico del maestro con el mismo nombre (mismo patrón que
+     el maestro de Asesores) — ese rol hoy no tiene acceso a ningún módulo (ve una pantalla de espera al
+     ingresar); a futuro entrará a "Servicios programados" (o a un módulo "Agenda de Servicio") a ver sus
+     servicios programados.
+   - **Solicitud de servicio**: crea/consulta/edita/cancela solicitudes, siempre asociadas de forma
+     obligatoria a una Orden de trabajo ya cargada (buscador con autocompletar por cliente). Al elegir la
+     orden, el formulario muestra de solo lectura su Cliente, Ciudad y Máquina (marca/modelo/serial); lo
+     único que se captura en la solicitud es la **fecha solicitada** y observaciones opcionales. Estado
+     (Pendiente → Programada, o Cancelada) pensado para que "Servicios programados" la tome a futuro y
+     asigne técnico según su capacidad diaria. "Cancelar" no borra la fila: pasa el Estado a Cancelada.
 
 ## Notas de seguridad
 

@@ -174,3 +174,27 @@ export interface Tecnico {
   createdAt: string;
   updatedAt: string;
 }
+
+export type EstadoSolicitudServicio = "PENDIENTE" | "PROGRAMADA" | "CANCELADA";
+
+export interface OrdenTrabajoResumen {
+  numero: number;
+  cliente: string;
+  ciudad: string | null;
+  marca: string | null;
+  modelo: string | null;
+  serialMaquina: string | null;
+  asesorPssr: string;
+}
+
+export interface SolicitudServicio {
+  id: string;
+  numero: number;
+  ordenTrabajoId: string;
+  ordenTrabajo: OrdenTrabajoResumen;
+  fechaSolicitada: string;
+  estado: EstadoSolicitudServicio;
+  observaciones: string | null;
+  createdAt: string;
+  updatedAt: string;
+}

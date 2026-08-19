@@ -59,8 +59,8 @@ const NAV_ITEMS: NavItem[] = [
     roles: ["ADMINISTRADOR", "ASESOR"],
   },
   {
-    label: "Alistamientos",
-    path: "/alistamientos",
+    label: "Servicio",
+    path: "/servicio",
     icon: <EngineeringIcon />,
     roles: ["ADMINISTRADOR"],
   },

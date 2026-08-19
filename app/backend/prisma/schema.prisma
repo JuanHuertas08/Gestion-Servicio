@@ -70,6 +70,15 @@ enum TipoServicioOrdenTrabajo {
   ENTREGA
 }
 
+// PENDIENTE: recién creada, todavía sin técnico ni fecha programada. PROGRAMADA: a futuro, cuando
+// exista el submódulo "Servicios programados", quedará asignada a un técnico/fecha. "Eliminar" en
+// la UI no borra la fila: la pasa a CANCELADA.
+enum EstadoSolicitudServicio {
+  PENDIENTE
+  PROGRAMADA
+  CANCELADA
+}
+
 model User {
   id              String   @id @default(cuid())
   nombres         String
@@ -93,6 +102,7 @@ model User {
   tecnico        Tecnico?
   ordenesTrabajoCreadas     OrdenTrabajo[] @relation("OrdenTrabajoCreadaPor")
   ordenesTrabajoActualizadas OrdenTrabajo[] @relation("OrdenTrabajoActualizadaPor")
+  solicitudesServicioCreadas SolicitudServicio[]
 
   @@map("users")
 }
@@ -312,11 +322,40 @@ model OrdenTrabajo {
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
+  solicitudesServicio SolicitudServicio[]
+
   @@index([cliente])
   @@index([asesorPssr])
   @@index([estado])
   @@index([fechaSolicitud])
   @@map("ordenes_trabajo")
+}
+
+// Submódulo "Solicitud de servicio" (dentro de Servicio). Se crea siempre a partir de una Orden de
+// trabajo ya cargada (asociación obligatoria) — cliente, ciudad y máquina se leen de esa orden, no
+// se duplican aquí. La fecha solicitada es la fecha en la que se pide el servicio; a futuro, el
+// submódulo "Servicios programados" la tomará para asignar técnico según su capacidad diaria.
+// "Eliminar" en la UI no borra la fila: pasa el estado a CANCELADA.
+model SolicitudServicio {
+  id     String @id @default(cuid())
+  numero Int    @unique @default(autoincrement())
+
+  ordenTrabajoId String
+  ordenTrabajo   OrdenTrabajo @relation(fields: [ordenTrabajoId], references: [id])
+
+  fechaSolicitada DateTime
+  estado          EstadoSolicitudServicio @default(PENDIENTE)
+  observaciones   String?
+
+  creadoPorId String
+  creadoPor   User     @relation(fields: [creadoPorId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([ordenTrabajoId])
+  @@index([estado])
+  @@index([fechaSolicitada])
+  @@map("solicitudes_servicio")
 }
 
 // Maestro de técnicos (módulo "Administración de alistamientos"). Es un registro de datos
