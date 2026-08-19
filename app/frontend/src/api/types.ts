@@ -1,4 +1,4 @@
-export type Rol = "ADMINISTRADOR" | "ASESOR" | "CONSULTA";
+export type Rol = "ADMINISTRADOR" | "ASESOR" | "CONSULTA" | "TECNICO_SERVICIO";
 
 export interface CurrentUser {
   id: string;
@@ -152,6 +152,25 @@ export interface OrdenTrabajo {
   tipoTrabajo: string | null;
   fechaTrasladoTaller: string | null;
   reporteClick: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CapacidadTecnico {
+  mes: number; // 1-12
+  capacidadDiaria: number;
+}
+
+export interface Tecnico {
+  id: string;
+  nombres: string;
+  apellidos: string;
+  cargo: string | null;
+  telefono: string | null;
+  correo: string | null;
+  activo: boolean;
+  userId: string | null;
+  capacidades: CapacidadTecnico[];
   createdAt: string;
   updatedAt: string;
 }

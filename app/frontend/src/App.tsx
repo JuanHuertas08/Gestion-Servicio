@@ -13,6 +13,15 @@ import { Dashboard } from "./pages/dashboard/Dashboard";
 import { FacturacionPage } from "./pages/facturacion/FacturacionPage";
 import { ProyeccionPage } from "./pages/proyeccion/ProyeccionPage";
 import { OrdenesTrabajoList } from "./pages/ordenesTrabajo/OrdenesTrabajoList";
+import { AlistamientosList } from "./pages/alistamientos/AlistamientosList";
+import { SinAccesoPage } from "./pages/SinAccesoPage";
+import { useAuth } from "./auth/AuthContext";
+
+function HomeRoute() {
+  const { user } = useAuth();
+  if (user?.rol === "TECNICO_SERVICIO") return <SinAccesoPage />;
+  return <Dashboard />;
+}
 
 function App() {
   return (
@@ -25,13 +34,14 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route element={<ProtectedRoute />}>
               <Route element={<Layout />}>
-                <Route path="/" element={<Dashboard />} />
+                <Route path="/" element={<HomeRoute />} />
                 <Route path="/cambiar-password" element={<CambiarPassword />} />
                 <Route element={<ProtectedRoute allowedRoles={["ADMINISTRADOR"]} />}>
                   <Route path="/facturacion" element={<FacturacionPage />} />
                   <Route path="/usuarios" element={<UsersList />} />
                   <Route path="/usuarios/auditoria" element={<AuditLogView />} />
                   <Route path="/usuarios/:id/auditoria" element={<AuditLogView />} />
+                  <Route path="/alistamientos" element={<AlistamientosList />} />
                 </Route>
                 <Route element={<ProtectedRoute allowedRoles={["ADMINISTRADOR", "ASESOR"]} />}>
                   <Route path="/proyeccion" element={<ProyeccionPage />} />

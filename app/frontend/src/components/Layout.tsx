@@ -21,6 +21,7 @@ import GroupIcon from "@mui/icons-material/GroupOutlined";
 import ReceiptLongIcon from "@mui/icons-material/ReceiptLongOutlined";
 import EventNoteIcon from "@mui/icons-material/EventNoteOutlined";
 import AssignmentIcon from "@mui/icons-material/AssignmentOutlined";
+import EngineeringIcon from "@mui/icons-material/EngineeringOutlined";
 import LogoutIcon from "@mui/icons-material/LogoutOutlined";
 import LockResetIcon from "@mui/icons-material/LockResetOutlined";
 import { useAuth } from "../auth/AuthContext";
@@ -56,6 +57,12 @@ const NAV_ITEMS: NavItem[] = [
     path: "/ordenes-trabajo",
     icon: <AssignmentIcon />,
     roles: ["ADMINISTRADOR", "ASESOR"],
+  },
+  {
+    label: "Alistamientos",
+    path: "/alistamientos",
+    icon: <EngineeringIcon />,
+    roles: ["ADMINISTRADOR"],
   },
 ];
 

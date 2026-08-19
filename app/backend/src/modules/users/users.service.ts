@@ -7,6 +7,11 @@ import {
   registrarAsesorDeUsuario,
   setAsesorActivoPorUsuario,
 } from "../asesores/asesores.service";
+import {
+  desvincularTecnicoDeUsuario,
+  registrarTecnicoDeUsuario,
+  setTecnicoActivoPorUsuario,
+} from "../tecnicos/tecnicos.service";
 
 export interface CreateUserInput {
   nombres: string;
@@ -60,6 +65,14 @@ export async function createUser(input: CreateUserInput, actorUserId: string) {
       nombres: user.nombres,
       apellidos: user.apellidos,
       numeroDocumento: user.numeroDocumento,
+      correo: user.correo,
+      telefono: user.telefono,
+    });
+  } else if (user.rol === Rol.TECNICO_SERVICIO) {
+    await registrarTecnicoDeUsuario({
+      userId: user.id,
+      nombres: user.nombres,
+      apellidos: user.apellidos,
       correo: user.correo,
       telefono: user.telefono,
     });
@@ -127,6 +140,18 @@ export async function updateUser(id: string, input: UpdateUserInput, actorUserId
     await desvincularAsesorDeUsuario(user.id);
   }
 
+  if (user.rol === Rol.TECNICO_SERVICIO) {
+    await registrarTecnicoDeUsuario({
+      userId: user.id,
+      nombres: user.nombres,
+      apellidos: user.apellidos,
+      correo: user.correo,
+      telefono: user.telefono,
+    });
+  } else if (existing.rol === Rol.TECNICO_SERVICIO) {
+    await desvincularTecnicoDeUsuario(user.id);
+  }
+
   return user;
 }
 
@@ -150,6 +175,8 @@ export async function setUserActivo(id: string, activo: boolean, actorUserId: st
 
   if (user.rol === Rol.ASESOR) {
     await setAsesorActivoPorUsuario(user.id, activo);
+  } else if (user.rol === Rol.TECNICO_SERVICIO) {
+    await setTecnicoActivoPorUsuario(user.id, activo);
   }
 
   return user;

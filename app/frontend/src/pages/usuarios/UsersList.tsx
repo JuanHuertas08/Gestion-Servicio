@@ -29,6 +29,7 @@ const ROLE_LABEL: Record<string, string> = {
   ADMINISTRADOR: "Administrador",
   ASESOR: "Asesor",
   CONSULTA: "Consulta",
+  TECNICO_SERVICIO: "Técnico de Servicio",
 };
 
 export function UsersList() {

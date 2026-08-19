@@ -66,9 +66,10 @@ Variable de entorno en `app/frontend/.env` (ver `.env.example`): `VITE_API_URL`.
 
 | Rol | Acceso |
 |---|---|
-| Administrador | Sin restricciones: usuarios, auditoría, facturación (carga + parametrización), tablero, proyección de seguimiento (todos los clientes), órdenes de trabajo (todas) |
-| Asesor | Tablero de indicadores, Proyección de seguimiento (restringida a los clientes cuya última factura le pertenece a él, por PSSR) y Órdenes de trabajo (todas, acceso colaborativo). Sin acceso a Usuarios ni a Facturación |
-| Consulta | Solo consulta al Tablero de indicadores. Sin acceso a Usuarios, Facturación, Proyección ni Órdenes de trabajo |
+| Administrador | Sin restricciones: usuarios, auditoría, facturación (carga + parametrización), tablero, proyección de seguimiento (todos los clientes), órdenes de trabajo (todas), administración de alistamientos |
+| Asesor | Tablero de indicadores, Proyección de seguimiento (restringida a los clientes cuya última factura le pertenece a él, por PSSR) y Órdenes de trabajo (todas, acceso colaborativo). Sin acceso a Usuarios, Facturación ni Alistamientos |
+| Consulta | Solo consulta al Tablero de indicadores. Sin acceso a ningún otro módulo |
+| Técnico de Servicio | Sin acceso a ningún módulo todavía — ve una pantalla de espera al ingresar. A futuro entrará a "Agenda de Servicio" (aún no construido) a ver sus servicios programados |
 
 Las restricciones se aplican tanto en el frontend (rutas protegidas / sidebar) como en el backend (cada
 router valida el rol en el middleware), así que no basta con ocultar el enlace: la API rechaza con 403
@@ -131,6 +132,14 @@ cualquier llamado fuera del alcance del rol.
    best-effort (el layout de esos PDF no trae Tipo de Servicio, fechas de programación, técnico ni datos
    del equipo), así que el resto siempre se completa a mano. Filtros por Cliente, Asesor, Estado, Prioridad
    y Ciudad. Sin acceso para el rol Consulta.
+6. **Administración de alistamientos** (solo Administrador): maestro de técnicos — nombres, apellidos,
+   cargo, teléfono y correo, más una **capacidad diaria por mes** (Ene-Dic, sin año: es una plantilla que
+   se reutiliza cada año hasta que se cambie). El formulario incluye un atajo "Aplicar a los 12 meses"
+   para no tener que escribir el mismo número doce veces. Al crear/editar un usuario con el nuevo rol
+   **Técnico de Servicio**, se vincula automáticamente al técnico del maestro con el mismo nombre (mismo
+   patrón que el maestro de Asesores) — ese rol hoy no tiene acceso a ningún módulo (ve una pantalla de
+   espera al ingresar); a futuro entrará a un módulo "Agenda de Servicio" (todavía no construido) a ver
+   sus servicios programados.
 
 ## Notas de seguridad
 

@@ -10,6 +10,7 @@ import proyeccionRoutes from "./modules/proyeccion/proyeccion.routes";
 import dashboardRoutes from "./modules/dashboard/dashboard.routes";
 import asesoresRoutes from "./modules/asesores/asesores.routes";
 import ordenesTrabajoRoutes from "./modules/ordenesTrabajo/ordenesTrabajo.routes";
+import tecnicosRoutes from "./modules/tecnicos/tecnicos.routes";
 
 export const app = express();
 
@@ -30,6 +31,7 @@ app.use("/api/proyeccion", proyeccionRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/asesores", asesoresRoutes);
 app.use("/api/ordenes-trabajo", ordenesTrabajoRoutes);
+app.use("/api/tecnicos", tecnicosRoutes);
 
 app.use(notFoundHandler);
 app.use(errorHandler);
