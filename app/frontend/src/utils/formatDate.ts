@@ -8,3 +8,12 @@ export function formatFecha(value: string | null | undefined): string {
   if (!value) return "-";
   return new Date(value).toLocaleDateString("es-CO", { timeZone: "UTC" });
 }
+
+/**
+ * Formatea una marca de tiempo real (ej. cuándo se registró algo), con fecha y hora en la zona
+ * horaria local de quien mira la pantalla — a diferencia de formatFecha, aquí sí importa la hora.
+ */
+export function formatFechaHora(value: string | null | undefined): string {
+  if (!value) return "-";
+  return new Date(value).toLocaleString("es-CO", { dateStyle: "short", timeStyle: "short" });
+}

@@ -7,7 +7,7 @@ import CancelIcon from "@mui/icons-material/CancelOutlined";
 import { listSolicitudesServicio, cancelarSolicitudServicio } from "../../api/solicitudesServicio";
 import type { EstadoSolicitudServicio, SolicitudServicio } from "../../api/types";
 import { SolicitudServicioFormDialog } from "./SolicitudServicioFormDialog";
-import { formatFecha } from "../../utils/formatDate";
+import { formatFecha, formatFechaHora } from "../../utils/formatDate";
 
 const ESTADO_LABEL: Record<EstadoSolicitudServicio, string> = {
   PENDIENTE: "Pendiente",
@@ -75,11 +75,18 @@ export function SolicitudesServicioTab() {
     { field: "cliente", headerName: "Cliente", flex: 1, minWidth: 200, valueGetter: (_v, row) => row.ordenTrabajo.cliente },
     { field: "ciudad", headerName: "Ciudad", width: 130, valueGetter: (_v, row) => row.ordenTrabajo.ciudad ?? "-" },
     { field: "maquina", headerName: "Máquina", width: 160, valueGetter: (_v, row) => maquinaLabel(row.ordenTrabajo) },
+    { field: "asesor", headerName: "Asesor", flex: 1, minWidth: 180, valueGetter: (_v, row) => row.ordenTrabajo.asesorPssr },
     {
       field: "fechaSolicitada",
       headerName: "Fecha solicitada",
       width: 140,
       valueFormatter: (value) => formatFecha(value as string | null),
+    },
+    {
+      field: "createdAt",
+      headerName: "Registrada",
+      width: 150,
+      valueFormatter: (value) => formatFechaHora(value as string | null),
     },
     {
       field: "estado",

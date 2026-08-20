@@ -285,7 +285,7 @@ export async function listSolicitudesServicio(params: ListSolicitudesServicioPar
     prisma.solicitudServicio.count({ where }),
     prisma.solicitudServicio.findMany({
       where,
-      orderBy: { fechaSolicitada: "desc" },
+      orderBy: { createdAt: "desc" },
       skip: (page - 1) * pageSize,
       take: pageSize,
       include: SOLICITUD_INCLUDE,
