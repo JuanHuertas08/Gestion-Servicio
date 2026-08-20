@@ -18,6 +18,7 @@ const ROLES = [
   { value: "ASESOR", label: "Asesor" },
   { value: "CONSULTA", label: "Consulta" },
   { value: "TECNICO_SERVICIO", label: "Técnico de Servicio" },
+  { value: "SERVICIO_ADMIN", label: "Servicio Admin" },
 ];
 
 interface Props {

@@ -62,7 +62,7 @@ const NAV_ITEMS: NavItem[] = [
     label: "Servicio",
     path: "/servicio",
     icon: <EngineeringIcon />,
-    roles: ["ADMINISTRADOR"],
+    roles: ["ADMINISTRADOR", "SERVICIO_ADMIN"],
   },
 ];
 

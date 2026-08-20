@@ -66,10 +66,11 @@ Variable de entorno en `app/frontend/.env` (ver `.env.example`): `VITE_API_URL`.
 
 | Rol | Acceso |
 |---|---|
-| Administrador | Sin restricciones: usuarios, auditoría, facturación (carga + parametrización), tablero, proyección de seguimiento (todos los clientes), órdenes de trabajo (todas), Servicio (administración de técnicos + solicitud de servicio) |
+| Administrador | Sin restricciones: usuarios, auditoría, facturación (carga + parametrización), tablero, proyección de seguimiento (todos los clientes), órdenes de trabajo (todas), Servicio completo (administración de técnicos + solicitud de servicio + servicios programados) |
 | Asesor | Tablero de indicadores, Proyección de seguimiento (restringida a los clientes cuya última factura le pertenece a él, por PSSR) y Órdenes de trabajo (todas, acceso colaborativo). Sin acceso a Usuarios, Facturación ni Servicio |
 | Consulta | Solo consulta al Tablero de indicadores. Sin acceso a ningún otro módulo |
 | Técnico de Servicio | Sin acceso a ningún módulo todavía — ve una pantalla de espera al ingresar. A futuro entrará a "Agenda de Servicio" (aún no construido) a ver sus servicios programados |
+| Servicio Admin | Solo Servicio > Servicios programados (aprobar solicitudes y ver el calendario). Al ingresar va directo ahí, no ve el Tablero ni el resto de "Servicio" (Administración de técnicos, Solicitud de servicio) |
 
 Las restricciones se aplican tanto en el frontend (rutas protegidas / sidebar) como en el backend (cada
 router valida el rol en el middleware), así que no basta con ocultar el enlace: la API rechaza con 403
@@ -132,22 +133,30 @@ cualquier llamado fuera del alcance del rol.
    best-effort (el layout de esos PDF no trae Tipo de Servicio, fechas de programación, técnico ni datos
    del equipo), así que el resto siempre se completa a mano. Filtros por Cliente, Asesor, Estado, Prioridad
    y Ciudad. Sin acceso para el rol Consulta.
-6. **Servicio** (solo Administrador), con dos pestañas — una tercera, "Servicios programados", queda
-   pendiente para más adelante:
+6. **Servicio**, con tres pestañas — las dos primeras solo para Administrador; la tercera también
+   para el rol Servicio Admin:
    - **Administración de técnicos**: maestro de técnicos — nombres, apellidos, cargo, teléfono y correo,
      más una **capacidad diaria por mes** (Ene-Dic, sin año: es una plantilla que se reutiliza cada año
      hasta que se cambie). El formulario incluye un atajo "Aplicar a los 12 meses" para no tener que
-     escribir el mismo número doce veces. Al crear/editar un usuario con el nuevo rol **Técnico de
-     Servicio**, se vincula automáticamente al técnico del maestro con el mismo nombre (mismo patrón que
-     el maestro de Asesores) — ese rol hoy no tiene acceso a ningún módulo (ve una pantalla de espera al
-     ingresar); a futuro entrará a "Servicios programados" (o a un módulo "Agenda de Servicio") a ver sus
-     servicios programados.
+     escribir el mismo número doce veces. Al crear/editar un usuario con el rol **Técnico de Servicio**,
+     se vincula automáticamente al técnico del maestro con el mismo nombre (mismo patrón que el maestro
+     de Asesores) — ese rol hoy no tiene acceso a ningún módulo (ve una pantalla de espera al ingresar);
+     a futuro entrará a un módulo "Agenda de Servicio" a ver sus servicios programados.
    - **Solicitud de servicio**: crea/consulta/edita/cancela solicitudes, siempre asociadas de forma
      obligatoria a una Orden de trabajo ya cargada (buscador con autocompletar por cliente). Al elegir la
      orden, el formulario muestra de solo lectura su Cliente, Ciudad y Máquina (marca/modelo/serial); lo
-     único que se captura en la solicitud es la **fecha solicitada** y observaciones opcionales. Estado
-     (Pendiente → Programada, o Cancelada) pensado para que "Servicios programados" la tome a futuro y
-     asigne técnico según su capacidad diaria. "Cancelar" no borra la fila: pasa el Estado a Cancelada.
+     único que se captura en la solicitud es la **fecha solicitada** y observaciones opcionales. "Cancelar"
+     no borra la fila: pasa el Estado a Cancelada.
+   - **Servicios programados** (Administrador + **Servicio Admin**, rol nuevo): dos secciones.
+     - *Pendientes de aprobar*: una tarjeta por cada solicitud en estado Pendiente, con Orden N°, Cliente,
+       Ciudad, Asesor y fecha de la solicitud. Cada tarjeta trae Técnico/Fecha programada/Hora editables
+       — el técnico se preselecciona automáticamente con el primero que tenga capacidad para esa fecha
+       (`GET /solicitudes-servicio/tecnicos-disponibles?fecha=...`: capacidad del mes vía Administración
+       de técnicos, menos cuántas solicitudes ya tiene Programadas ese mismo día exacto). El botón
+       "Aprobar" pide confirmación (resumen de cliente/fecha/hora/técnico) antes de guardar; al confirmar
+       pasa la solicitud a Programada y desaparece de esta lista.
+     - *Calendario*: vista de mes (navegable mes a mes, con atajo "Mes actual") con los servicios en
+       estado Programada ubicados en su fecha programada.
 
 ## Notas de seguridad
 

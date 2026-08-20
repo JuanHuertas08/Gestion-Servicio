@@ -1,11 +1,13 @@
 import { api } from "./client";
-import type { EstadoSolicitudServicio, PagedResult, SolicitudServicio } from "./types";
+import type { EstadoSolicitudServicio, PagedResult, SolicitudServicio, TecnicoDisponible } from "./types";
 
 export interface ListSolicitudesServicioParams {
   page: number;
   pageSize: number;
   estado?: EstadoSolicitudServicio;
   cliente?: string;
+  fechaProgramadaDesde?: string;
+  fechaProgramadaHasta?: string;
 }
 
 export async function listSolicitudesServicio(
@@ -26,9 +28,15 @@ export async function createSolicitudServicio(input: SolicitudServicioInput): Pr
   return data;
 }
 
+export interface UpdateSolicitudServicioInput extends Partial<SolicitudServicioInput> {
+  tecnicoId?: string;
+  fechaProgramada?: string;
+  horaProgramada?: string;
+}
+
 export async function updateSolicitudServicio(
   id: string,
-  input: Partial<SolicitudServicioInput>
+  input: UpdateSolicitudServicioInput
 ): Promise<SolicitudServicio> {
   const { data } = await api.put<SolicitudServicio>(`/solicitudes-servicio/${id}`, input);
   return data;
@@ -37,5 +45,26 @@ export async function updateSolicitudServicio(
 /** "Eliminar" no borra la solicitud: la pasa a estado Cancelada. */
 export async function cancelarSolicitudServicio(id: string): Promise<SolicitudServicio> {
   const { data } = await api.delete<SolicitudServicio>(`/solicitudes-servicio/${id}`);
+  return data;
+}
+
+export async function getTecnicosDisponibles(fecha: string): Promise<TecnicoDisponible[]> {
+  const { data } = await api.get<TecnicoDisponible[]>("/solicitudes-servicio/tecnicos-disponibles", {
+    params: { fecha },
+  });
+  return data;
+}
+
+export interface AprobarSolicitudServicioInput {
+  tecnicoId: string;
+  fechaProgramada: string;
+  horaProgramada: string;
+}
+
+export async function aprobarSolicitudServicio(
+  id: string,
+  input: AprobarSolicitudServicioInput
+): Promise<SolicitudServicio> {
+  const { data } = await api.post<SolicitudServicio>(`/solicitudes-servicio/${id}/aprobar`, input);
   return data;
 }

@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider, CssBaseline } from "@mui/material";
 import { theme } from "./theme";
 import { AuthProvider } from "./auth/AuthContext";
@@ -20,6 +20,9 @@ import { useAuth } from "./auth/AuthContext";
 function HomeRoute() {
   const { user } = useAuth();
   if (user?.rol === "TECNICO_SERVICIO") return <SinAccesoPage />;
+  // Servicio Admin solo tiene acceso a Servicio > Servicios programados: lo llevamos directo ahí
+  // en vez de mostrarle el Tablero (que no le corresponde).
+  if (user?.rol === "SERVICIO_ADMIN") return <Navigate to="/servicio" replace />;
   return <Dashboard />;
 }
 
@@ -41,11 +44,13 @@ function App() {
                   <Route path="/usuarios" element={<UsersList />} />
                   <Route path="/usuarios/auditoria" element={<AuditLogView />} />
                   <Route path="/usuarios/:id/auditoria" element={<AuditLogView />} />
-                  <Route path="/servicio" element={<ServicioPage />} />
                 </Route>
                 <Route element={<ProtectedRoute allowedRoles={["ADMINISTRADOR", "ASESOR"]} />}>
                   <Route path="/proyeccion" element={<ProyeccionPage />} />
                   <Route path="/ordenes-trabajo" element={<OrdenesTrabajoList />} />
+                </Route>
+                <Route element={<ProtectedRoute allowedRoles={["ADMINISTRADOR", "SERVICIO_ADMIN"]} />}>
+                  <Route path="/servicio" element={<ServicioPage />} />
                 </Route>
               </Route>
             </Route>

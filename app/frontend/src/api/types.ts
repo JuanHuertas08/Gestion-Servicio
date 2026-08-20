@@ -1,4 +1,4 @@
-export type Rol = "ADMINISTRADOR" | "ASESOR" | "CONSULTA" | "TECNICO_SERVICIO";
+export type Rol = "ADMINISTRADOR" | "ASESOR" | "CONSULTA" | "TECNICO_SERVICIO" | "SERVICIO_ADMIN";
 
 export interface CurrentUser {
   id: string;
@@ -187,6 +187,12 @@ export interface OrdenTrabajoResumen {
   asesorPssr: string;
 }
 
+export interface TecnicoResumen {
+  id: string;
+  nombres: string;
+  apellidos: string;
+}
+
 export interface SolicitudServicio {
   id: string;
   numero: number;
@@ -195,6 +201,20 @@ export interface SolicitudServicio {
   fechaSolicitada: string;
   estado: EstadoSolicitudServicio;
   observaciones: string | null;
+  tecnicoId: string | null;
+  tecnico: TecnicoResumen | null;
+  fechaProgramada: string | null;
+  horaProgramada: string | null;
+  aprobadoPorId: string | null;
+  fechaAprobacion: string | null;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface TecnicoDisponible {
+  id: string;
+  nombreCompleto: string;
+  capacidadDiaria: number;
+  asignadosEseDia: number;
+  disponible: boolean;
 }
